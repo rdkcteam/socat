@@ -1,6 +1,6 @@
-#! /usr/bin/env bash
+#! /bin/bash
 # source: proxy.sh
-# Copyright Gerhard Rieger and contributors (see file CHANGES)
+# Copyright Gerhard Rieger 2003-2004
 # Published under the GNU General Public License V.2, see file COPYING
 
 # perform primitive simulation of a proxy server.
@@ -9,8 +9,6 @@
 # it is required for socats test.sh
 # for TCP, use this script as:
 # socat tcp-l:8080,reuseaddr,fork exec:"proxy.sh",nofork
-
-# 20130622  GR allow hostnames, not only IP addresses
 
 if [ -z "$SOCAT" ]; then
     if type socat >/dev/null 2>&1; then
@@ -50,30 +48,19 @@ while [ -n "$1" ]; do
     shift
 done
 
-badrequest () {
+# read and parse HTTP request
+read l
+if echo "$l" |egrep '^CONNECT +[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+:[0-9]+ +HTTP/1.[01]' >/dev/null
+then
+    : go on below
+else
     $ECHO "HTTP/1.0${SPACES}500 Bad Request$CR"
     $ECHO "$CR"
-}
-
-# read and parse HTTP request
-read m a h
-#echo "\"$m\" \"$a\" \"$h\"" >&2
-if [ "$m" != 'CONNECT' ]; then
-    badrequest; exit 1
-fi
-if [[ "$a" == [0-9]+\.[0-9]+\.[0-9]+\.[0-9]+:[0-9]+ ]]; then
-    : go on below
-elif [[ "$a" == [0-9a-zA-Z-.][0-9a-zA-Z-.]*:[0-9][0-9]* ]]; then
-    : go on below
-else
-    badrequest; exit 1
+    exit
 fi
 
-if [[ "$h" == HTTP/1.[01][[:space:]]* ]]; then
-    : go on below
-else
-    badrequest; exit 1
-fi
+# extract target server name/address
+s=`echo $l |awk '{print($2);}'`
 
 # read more headers until empty line
 while [ "$l" != "$CR" ]; do
@@ -86,8 +73,4 @@ $ECHO "HTTP/1.0${SPACES}200 OK$CR"
 $ECHO "$CR"
 
 # perform proxy (relay) function
-$SOCAT $SOCAT_OPTS - tcp:$a || {
-    $ECHO "HTTP/1.0${SPACES}500 Failed to connect to $a$CR"
-    $ECHO $CR
-}
-
+exec $SOCAT $SOCAT_OPTS - tcp:$s

@@ -1,5 +1,5 @@
 /* source: xio-exec.c */
-/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
+/* Copyright Gerhard Rieger 2001-2011 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for opening addresses of exec type */

@@ -1,5 +1,5 @@
 /* source: xio-pipe.h */
-/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
+/* Copyright Gerhard Rieger 2001 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __xio_pipe_h_included

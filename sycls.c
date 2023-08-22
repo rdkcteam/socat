@@ -1,5 +1,5 @@
 /* source: sycls.c */
-/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* explicit system call and C library trace function, for those who miss strace
@@ -7,6 +7,8 @@
 
 #include "config.h"
 #include "xioconfig.h"	/* what features are enabled */
+
+#if WITH_SYCLS
 
 #include "sysincludes.h"
 
@@ -21,8 +23,6 @@
 #include "sycls.h"
 
 
-#if WITH_SYCLS
-
 mode_t Umask(mode_t mask) {
    mode_t result;
    int _errno;
@@ -34,26 +34,17 @@ mode_t Umask(mode_t mask) {
    return result;
 }
 
-#endif /* WITH_SYCLS */
-
-
 int Open(const char *pathname, int flags, mode_t mode) {
    int result, _errno;
    if (!diag_in_handler) diag_flush();
-#if WITH_SYCLS
    Debug3("open(\"%s\", 0%o, 0%03o)", pathname, flags, mode);
-#endif /* WITH_SYCLS */
    result = open(pathname, flags, mode);
    _errno = errno;
    if (!diag_in_handler) diag_flush();
-#if WITH_SYCLS
    Info4("open(\"%s\", 0%o, 0%03o) -> %d", pathname, flags, mode, result);
-#endif /* WITH_SYCLS */
    errno = _errno;
    return result;
 }
-
-#if WITH_SYCLS
 
 int Creat(const char *pathname, mode_t mode) {
    int result, _errno;
@@ -524,21 +515,15 @@ int Pipe(int filedes[2]) {
    return result;
 }
 
-#endif /* WITH_SYCLS */
-
 ssize_t Read(int fd, void *buf, size_t count) {
    ssize_t result;
    int _errno;
    if (!diag_in_handler) diag_flush();
-#if WITH_SYCLS
    Debug3("read(%d, %p, "F_Zu")", fd, buf, count);
-#endif /* WITH_SYCLS */
    result = read(fd, buf, count);
    _errno = errno;
    if (!diag_in_handler) diag_flush();
-#if WITH_SYCLS
    Debug1("read -> "F_Zd, result);
-#endif /* WITH_SYCLS */
    errno = _errno;
    return result;
 }
@@ -547,15 +532,11 @@ ssize_t Write(int fd, const void *buf, size_t count) {
    ssize_t result;
    int _errno;
    if (!diag_in_handler) diag_flush();
-#if WITH_SYCLS
    Debug3("write(%d, %p, "F_Zu")", fd, buf, count);
-#endif /* WITH_SYCLS */
    result = write(fd, buf, count);
    _errno = errno;
    if (!diag_in_handler) diag_flush();
-#if WITH_SYCLS
    Debug1("write -> "F_Zd, result);
-#endif /* WITH_SYCLS */
    errno = _errno;
    return result;
 }
@@ -563,15 +544,11 @@ ssize_t Write(int fd, const void *buf, size_t count) {
 int Fcntl(int fd, int cmd) {
    int result, _errno;
    if (!diag_in_handler) diag_flush();
-#if WITH_SYCLS
    Debug2("fcntl(%d, %d)", fd, cmd);
-#endif /* WITH_SYCLS */
    result = fcntl(fd, cmd);
    if (!diag_in_handler) diag_flush();
    _errno = errno;
-#if WITH_SYCLS
    Debug1("fcntl() -> %d", result);
-#endif /* WITH_SYCLS */
    errno = _errno;
    return result;
 }
@@ -579,15 +556,11 @@ int Fcntl(int fd, int cmd) {
 int Fcntl_l(int fd, int cmd, long arg) {
    int result, _errno;
    if (!diag_in_handler) diag_flush();
-#if WITH_SYCLS
    Debug3("fcntl(%d, %d, %ld)", fd, cmd, arg);
-#endif /* WITH_SYCLS */
    result = fcntl(fd, cmd, arg);
    _errno = errno;
    if (!diag_in_handler) diag_flush();
-#if WITH_SYCLS
    Debug1("fcntl() -> %d", result);
-#endif /* WITH_SYCLS */
    errno = _errno;
    return result;
 }
@@ -595,21 +568,15 @@ int Fcntl_l(int fd, int cmd, long arg) {
 int Fcntl_lock(int fd, int cmd, struct flock *l) {
    int result, _errno;
    if (!diag_in_handler) diag_flush();
-#if WITH_SYCLS
    Debug7("fcntl(%d, %d, {type=%hd,whence=%hd,start="F_off",len="F_off",pid="F_pid"})",
 	  fd, cmd, l->l_type, l->l_whence, l->l_start, l->l_len, l->l_pid);
-#endif /* WITH_SYCLS */
    result = fcntl(fd, cmd, l);
    _errno = errno;
    if (!diag_in_handler) diag_flush();
-#if WITH_SYCLS
    Debug1("fcntl() -> %d", result);
-#endif /* WITH_SYCLS */
    errno = _errno;
    return result;
 }
-
-#if WITH_SYCLS
 
 int Ftruncate(int fd, off_t length) {
    int retval, _errno;
@@ -633,21 +600,15 @@ int Ftruncate64(int fd, off64_t length) {
 }
 #endif /* HAVE_FTRUNCATE64 */
 
-#endif /* WITH_SYCLS */
-
 #if HAVE_FLOCK
 int Flock(int fd, int operation) {
    int retval, _errno;
    if (!diag_in_handler) diag_flush();
-#if WITH_SYCLS
    Debug2("flock(%d, %d)", fd, operation);
-#endif /* WITH_SYCLS */
    retval = flock(fd, operation);
    _errno = errno;
    if (!diag_in_handler) diag_flush();
-#if WITH_SYCLS
    Debug1("flock() -> %d", retval);
-#endif /* WITH_SYCLS */
    errno = _errno;
    return retval;
 }
@@ -656,40 +617,28 @@ int Flock(int fd, int operation) {
 int Ioctl(int d, int request, void *argp) {
    int retval, _errno;
    if (!diag_in_handler) diag_flush();
-#if WITH_SYCLS
    if (argp > (void *)0x10000) {	/* fuzzy...*/
       Debug4("ioctl(%d, 0x%x, %p{%lu})", d, request, argp, *(unsigned long *)argp);
    } else {
       Debug3("ioctl(%d, 0x%x, 0x%p)", d, request, argp);
    }
-#endif /* WITH_SYCLS */
    retval = ioctl(d, request, argp);
    _errno = errno;
    if (!diag_in_handler) diag_flush();
-#if WITH_SYCLS
    Debug1("ioctl() -> %d", retval);
-#endif /* WITH_SYCLS */
    errno = _errno;
    return retval;
 }
 
 int Ioctl_int(int d, int request, int arg) {
    int retval, _errno;
-   if (!diag_in_handler) diag_flush();
-#if WITH_SYCLS
    Debug3("ioctl(%d, 0x%x, %d)", d, request, arg);
-#endif /* WITH_SYCLS */
    retval = ioctl(d, request, arg);
    _errno = errno;
-   if (!diag_in_handler) diag_flush();
-#if WITH_SYCLS
    Debug1("ioctl() -> %d", retval);
-#endif /* WITH_SYCLS */
    errno = _errno;
    return retval;
 }
-
-#if WITH_SYCLS
 
 int Close(int fd) {
    int retval, _errno;
@@ -771,14 +720,11 @@ int Chmod(const char *path, mode_t mode) {
    return retval;
 }
 
-#endif /* WITH_SYCLS */
-
 #if HAVE_POLL
 /* we only show the first struct pollfd; hope this is enough for most cases. */
 int Poll(struct pollfd *ufds, unsigned int nfds, int timeout) {
    int _errno, result;
    if (!diag_in_handler) diag_flush();
-#if WITH_SYCLS
    if (nfds == 4) {
       Debug10("poll({%d,0x%02hx,}{%d,0x%02hx,}{%d,0x%02hx,}{%d,0x%02hx,}, %u, %d)",
 	      ufds[0].fd, ufds[0].events, ufds[1].fd, ufds[1].events,
@@ -787,18 +733,15 @@ int Poll(struct pollfd *ufds, unsigned int nfds, int timeout) {
    } else {
       Debug4("poll({%d,0x%02hx,}, , %u, %d)", ufds[0].fd, ufds[0].events, nfds, timeout);
    }
-#endif /* WITH_SYCLS */
    result = poll(ufds, nfds, timeout);
    _errno = errno;
    if (!diag_in_handler) diag_flush();
-#if WITH_SYCLS
    if (nfds == 4) {
       Debug5("poll(, {,,0x%02hx}{,,0x%02hx}{,,0x%02hx}{,,0x%02hx}) -> %d",
 	     ufds[0].revents, ufds[1].revents, ufds[2].revents, ufds[3].revents, result);
    } else {
       Debug2("poll(, {,,0x%02hx}) -> %d", ufds[0].revents, result);
    }
-#endif /* WITH_SYCLS */
    errno = _errno;
    return result;
 }
@@ -810,7 +753,6 @@ int Select(int n, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
 	   struct timeval *timeout) {
    int result, _errno;
    if (!diag_in_handler) diag_flush();
-#if WITH_SYCLS
 #if HAVE_FDS_BITS
    Debug7("select(%d, &0x%lx, &0x%lx, &0x%lx, %s%lu."F_tv_usec")",
 	  n, readfds?readfds->fds_bits[0]:0, writefds?writefds->fds_bits[0]:0,
@@ -824,11 +766,9 @@ int Select(int n, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
 	  timeout?"&":"NULL/", timeout?timeout->tv_sec:0,
 	  timeout?timeout->tv_usec:0);
 #endif
-#endif /* WITH_SYCLS */
    result = select(n, readfds, writefds, exceptfds, timeout);
    _errno = errno;
    if (!diag_in_handler) diag_flush();
-#if WITH_SYCLS
 #if HAVE_FDS_BITS
    Debug7("select -> (, 0x%lx, 0x%lx, 0x%lx, %s%lu."F_tv_usec"), %d",
 	  readfds?readfds->fds_bits[0]:0, writefds?writefds->fds_bits[0]:0,
@@ -842,13 +782,10 @@ int Select(int n, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
 	  timeout?"&":"NULL/", timeout?timeout->tv_sec:0,
 	  timeout?timeout->tv_usec:0, result);
 #endif
-#endif /* WITH_SYCLS */
    errno = _errno;
 
    return result;
 }
-
-#if WITH_SYCLS
 
 pid_t Fork(void) {
    pid_t pid;
@@ -861,26 +798,18 @@ pid_t Fork(void) {
    return pid;
 }
 
-#endif /* WITH_SYCLS */
-
 pid_t Waitpid(pid_t pid, int *status, int options) {
    int _errno;
    pid_t retval;
    if (!diag_in_handler) diag_flush();
-#if WITH_SYCLS
    Debug3("waitpid("F_pid", %p, %d)", pid, status, options);
-#endif /* WITH_SYCLS */
    retval = waitpid(pid, status, options);
    _errno = errno;
    if (!diag_in_handler) diag_flush();
-#if WITH_SYCLS
    Debug2("waitpid(, {%d}, ) -> "F_pid, *status, retval);
-#endif /* WITH_SYCLS */
    errno = _errno;
    return retval;
 }
-
-#if WITH_SYCLS
 
 sighandler_t Signal(int signum, sighandler_t handler) {
    int _errno;
@@ -962,25 +891,17 @@ int Execvp(const char *file, char *const argv[]) {
    return result;
 }
 
-#endif /* WITH_SYCLS */
-
 int System(const char *string) {
    int result, _errno;
-#if WITH_SYCLS
    Debug1("system(\"%s\")", string);
-#endif /* WITH_SYCLS */
    diag_immediate_exit = 1;
    result = system(string);
    diag_immediate_exit = 0;
    _errno = errno;
-#if WITH_SYCLS
    Debug1("system() -> %d", result);
-#endif /* WITH_SYCLS */
    errno = _errno;
    return result;
 }
-
-#if WITH_SYCLS
 
 int Socketpair(int d, int type, int protocol, int sv[2]) {
    int result, _errno;
@@ -1019,15 +940,12 @@ int Bind(int sockfd, struct sockaddr *my_addr, socklen_t addrlen) {
 }
 #endif /* _WITH_SOCKET */
 
-#endif /* WITH_SYCLS */
-
 #if _WITH_SOCKET
 int Connect(int sockfd, const struct sockaddr *serv_addr, socklen_t addrlen) {
    int result, _errno;
    char infobuff[256];
 
    if (!diag_in_handler) diag_flush();
-#if WITH_SYCLS
    /*sockaddr_info(serv_addr, infobuff, sizeof(infobuff));
    Debug3("connect(%d, %s, "F_Zd")", sockfd, infobuff, addrlen);*/
 #if 0
@@ -1048,19 +966,14 @@ int Connect(int sockfd, const struct sockaddr *serv_addr, socklen_t addrlen) {
 	  sockaddr_info(serv_addr, addrlen, infobuff, sizeof(infobuff)),
 	  addrlen);
 #endif
-#endif /* WITH_SYCLS */
    result = connect(sockfd, serv_addr, addrlen);
    _errno = errno;
    if (!diag_in_handler) diag_flush();
-#if WITH_SYCLS
    Debug1("connect() -> %d", result);
-#endif /* WITH_SYCLS */
    errno = _errno;
    return result;
 }
 #endif /* _WITH_SOCKET */
-
-#if WITH_SYCLS
 
 #if _WITH_SOCKET
 int Listen(int s, int backlog) {
@@ -1074,8 +987,6 @@ int Listen(int s, int backlog) {
 }
 #endif /* _WITH_SOCKET */
 
-#endif /* WITH_SYCLS */
-
 #if _WITH_SOCKET
 /* don't forget to handle EINTR when using Accept() ! */
 int Accept(int s, struct sockaddr *addr, socklen_t *addrlen) {
@@ -1087,13 +998,10 @@ int Accept(int s, struct sockaddr *addr, socklen_t *addrlen) {
    if (diag_select(s+1, &accept_s, NULL, NULL, NULL) < 0) {
       return -1;
    }
-#if WITH_SYCLS
    Debug3("accept(%d, %p, %p)", s, addr, addrlen);
-#endif /* WITH_SYCLS */
    result = accept(s, addr, addrlen);
    _errno = errno;
    if (!diag_in_handler) diag_flush();
-#if WITH_SYCLS
    if (result >= 0) {
       char infobuff[256];
       sockaddr_info(addr, *addrlen, infobuff, sizeof(infobuff));
@@ -1104,13 +1012,10 @@ int Accept(int s, struct sockaddr *addr, socklen_t *addrlen) {
    } else {
       Debug1("accept(,,) -> %d", result);
    }
-#endif /* WITH_SYCLS */
    errno = _errno;
    return result;
 }
 #endif /* _WITH_SOCKET */
-
-#if WITH_SYCLS
 
 #if _WITH_SOCKET
 int Getsockname(int s, struct sockaddr *name, socklen_t *namelen) {
@@ -1180,21 +1085,15 @@ int Setsockopt(int s, int level, int optname, const void *optval, int optlen) {
 }
 #endif /* _WITH_SOCKET */
 
-#endif /* WITH_SYCLS */
-
 #if _WITH_SOCKET
 int Recv(int s, void *buf, size_t len, int flags) {
    int retval, _errno;
    if (!diag_in_handler) diag_flush();
-#if WITH_SYCLS
    Debug4("recv(%d, %p, "F_Zu", %d)", s, buf, len, flags);
-#endif /* WITH_SYCLS */
    retval = recv(s, buf, len, flags);
    _errno = errno;
    if (!diag_in_handler) diag_flush();
-#if WITH_SYCLS
    Debug1("recv() -> %d", retval);
-#endif /* WITH_SYCLS */
    errno = _errno;
    return retval;
 }
@@ -1206,14 +1105,11 @@ int Recvfrom(int s, void *buf, size_t len, int flags, struct sockaddr *from,
    int retval, _errno;
    char infobuff[256];
    if (!diag_in_handler) diag_flush();
-#if WITH_SYCLS
    Debug6("recvfrom(%d, %p, "F_Zu", %d, %p, "F_socklen")",
 	  s, buf, len, flags, from, *fromlen);
-#endif /* WITH_SYCLS */
    retval = recvfrom(s, buf, len, flags, from, fromlen);
    _errno = errno;
    if (!diag_in_handler) diag_flush();
-#if WITH_SYCLS
    if (from) {
       Debug4("recvfrom(,,,, {%d,%s}, "F_socklen") -> %d",
 	     from->sa_family,
@@ -1222,7 +1118,6 @@ int Recvfrom(int s, void *buf, size_t len, int flags, struct sockaddr *from,
    } else {
       Debug1("recvfrom(,,,, NULL, NULL) -> %d", retval);
    }
-#endif /* WITH_SYCLS */
    errno = _errno;
    return retval;
 }
@@ -1232,7 +1127,6 @@ int Recvfrom(int s, void *buf, size_t len, int flags, struct sockaddr *from,
 int Recvmsg(int s, struct msghdr *msgh, int flags) {
    int retval, _errno;
    if (!diag_in_handler) diag_flush();
-#if WITH_SYCLS
    char infobuff[256];
 #if defined(HAVE_STRUCT_MSGHDR_MSGCONTROL) && defined(HAVE_STRUCT_MSGHDR_MSGCONTROLLEN) && defined(HAVE_STRUCT_MSGHDR_MSGFLAGS)
    Debug10("recvmsg(%d, %p{%p,%u,%p,"F_Zu",%p,"F_Zu",%d}, %d)", s, msgh,
@@ -1243,11 +1137,9 @@ int Recvmsg(int s, struct msghdr *msgh, int flags) {
 	  msgh->msg_name, msgh->msg_namelen,  msgh->msg_iov,  msgh->msg_iovlen,
 	  flags);
 #endif
-#endif /* WITH_SYCLS */
    retval = recvmsg(s, msgh, flags);
    _errno = errno;
    if (!diag_in_handler) diag_flush();
-#if WITH_SYCLS
 #if defined(HAVE_STRUCT_MSGHDR_MSGCONTROLLEN)
    Debug5("recvmsg(, {%s,%u,,"F_Zu",,"F_Zu",}, ) -> %d",
 	  msgh->msg_name?sockaddr_info(msgh->msg_name, msgh->msg_namelen, infobuff, sizeof(infobuff)):"NULL",
@@ -1259,7 +1151,6 @@ int Recvmsg(int s, struct msghdr *msgh, int flags) {
 	  msgh->msg_namelen, msgh->msg_iovlen,
 	  retval);
 #endif
-#endif /* WITH_SYCLS */
    errno = _errno;
    return retval;
 }
@@ -1269,16 +1160,12 @@ int Recvmsg(int s, struct msghdr *msgh, int flags) {
 int Send(int s, const void *mesg, size_t len, int flags) {
    int retval, _errno;
    if (!diag_in_handler) diag_flush();
-#if WITH_SYCLS
    Debug5("send(%d, %p[%08x...], "F_Zu", %d)",
 	  s, mesg, ntohl(*(unsigned long *)mesg), len, flags);
-#endif /* WITH_SYCLS */
    retval = send(s, mesg, len, flags);
    _errno = errno;
    if (!diag_in_handler) diag_flush();
-#if WITH_SYCLS
    Debug1("send() -> %d", retval);
-#endif /* WITH_SYCLS */
    errno = _errno;
    return retval;
 }
@@ -1291,23 +1178,17 @@ int Sendto(int s, const void *mesg, size_t len, int flags,
    char infobuff[256];
 
    if (!diag_in_handler) diag_flush();
-#if WITH_SYCLS
    sockaddr_info(to, tolen, infobuff, sizeof(infobuff));
    Debug7("sendto(%d, %p[%08x...], "F_Zu", %d, {%s}, %d)",
 	  s, mesg, htonl(*(unsigned long *)mesg), len, flags, infobuff, tolen);
-#endif /* WITH_SYCLS */
    retval = sendto(s, mesg, len, flags, to, tolen);
    _errno = errno;
    if (!diag_in_handler) diag_flush();
-#if WITH_SYCLS
    Debug1("sendto() -> %d", retval);
-#endif /* WITH_SYCLS */
    errno = _errno;
    return retval;
 }
 #endif /* _WITH_SOCKET */
-
-#if WITH_SYCLS
 
 #if _WITH_SOCKET
 int Shutdown(int fd, int how) {
@@ -1364,7 +1245,7 @@ int Pause(void) {
    return retval;
 }
 
-#if ( _WITH_IP4 || _WITH_IP6 ) && HAVE_GETHOSTBYNAME
+#if WITH_IP4 || WITH_IP6
 struct hostent *Gethostbyname(const char *name) {
    struct hostent *hent;
    Debug1("gethostbyname(\"%s\")", name);
@@ -1380,7 +1261,7 @@ struct hostent *Gethostbyname(const char *name) {
    }
    return hent;
 }
-#endif /* ( _WITH_IP4 || _WITH_IP6 ) && HAVE_GETHOSTBYNAME */
+#endif /* WITH_IP4 || WITH_IP6 */
 
 #if (_WITH_IP4 || _WITH_IP6) && HAVE_GETADDRINFO
 int Getaddrinfo(const char *node, const char *service,
@@ -1472,18 +1353,10 @@ int Tcgetattr(int fd, struct termios *termios_p) {
       cp += sprintf(cp, "%02x,", termios_p->c_cc[i]);
    }
    sprintf(cp, "%02x", termios_p->c_cc[i]);
-#if HAVE_STRUCT_TERMIOS_C_ISPEED && HAVE_STRUCT_TERMIOS_C_OSPEED
-   Debug8("tcgetattr(, {%08x,%08x,%08x,%08x, "F_speed","F_speed", %s}) -> %d",
-	  termios_p->c_iflag, termios_p->c_oflag,
-	  termios_p->c_cflag, termios_p->c_lflag,
-	  termios_p->c_ispeed, termios_p->c_ospeed,
-	  chars, result);
-#else
    Debug6("tcgetattr(, {%08x,%08x,%08x,%08x,%s}) -> %d",
 	  termios_p->c_iflag, termios_p->c_oflag,
 	  termios_p->c_cflag, termios_p->c_lflag, 
 	  chars, result);
-#endif
    errno = _errno;
    return result;
 }
@@ -1498,18 +1371,9 @@ int Tcsetattr(int fd, int optional_actions, struct termios *termios_p) {
       cp += sprintf(cp, "%02x,", termios_p->c_cc[i]);
    }
    sprintf(cp, "%02x", termios_p->c_cc[i]);
-#if HAVE_STRUCT_TERMIOS_C_ISPEED && HAVE_STRUCT_TERMIOS_C_OSPEED
-   Debug9("tcsetattr(%d, %d, {%08x,%08x,%08x,%08x, "F_speed","F_speed", %s})",
-	  fd, optional_actions,
-	  termios_p->c_iflag, termios_p->c_oflag,
-	  termios_p->c_cflag, termios_p->c_lflag,
-	  termios_p->c_ispeed, termios_p->c_ospeed,
-	  chars);
-#else
    Debug7("tcsetattr(%d, %d, {%08x,%08x,%08x,%08x,%s})", fd, optional_actions,
 	  termios_p->c_iflag, termios_p->c_oflag,
 	  termios_p->c_cflag, termios_p->c_lflag, chars);
-#endif
    result = tcsetattr(fd, optional_actions, termios_p);
    _errno = errno;
    Debug1("tcsetattr() -> %d", result);
@@ -1633,17 +1497,12 @@ int Atexit(void (*func)(void)) {
    return result;
 }
 
-#endif /* WITH_SYCLS */
 
 void Exit(int status) {
    if (!diag_in_handler) diag_flush();
-#if WITH_SYCLS
    Debug1("exit(%d)", status);
-#endif /* WITH_SYCLS */
    exit(status);
 }
-
-#if WITH_SYCLS
 
 void Abort(void) {
    Debug("abort()");

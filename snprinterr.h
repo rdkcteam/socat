@@ -1,5 +1,5 @@
 /* source: snprinterr.h */
-/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __snprinterr_h_included

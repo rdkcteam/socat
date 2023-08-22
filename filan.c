@@ -1,5 +1,5 @@
 /* source: filan.c */
-/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* the subroutine filan makes a "FILe descriptor ANalysis". It checks the
@@ -144,7 +144,6 @@ int filan_fd(int fd, FILE *outfile) {
 	    |POLLMSG
 #endif
 	    ;
-#if HAVE_POLL
 	 if (Poll(&ufds, 1, 0) < 0) {
 	    Warn4("poll({%d, %hd, %hd}, 1, 0): %s",
 		   ufds.fd, ufds.events, ufds.revents, strerror(errno));
@@ -201,7 +200,6 @@ int filan_fd(int fd, FILE *outfile) {
 	    }
 #endif /* _WITH_SOCKET && defined(MSG_DONTWAIT) */
 	 }	 
-#endif /* HAVE_POLL */
       }
    }
    fputc('\n', outfile);

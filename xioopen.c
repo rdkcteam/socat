@@ -1,5 +1,5 @@
 /* source: xioopen.c */
-/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
+/* Copyright Gerhard Rieger 2001-2008 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this is the source file of the extended open function */
@@ -352,6 +352,12 @@ static xiofile_t *xioallocfd(void) {
 /* fd->stream.para.exec.pid = 0; */
    fd->stream.lineterm  = LINETERM_RAW;
 
+   /*!! support n socks */
+   if (!sock[0]) {
+      sock[0] = fd;
+   } else {
+      sock[1] = fd;
+   }
    return fd;
 }
 
@@ -369,12 +375,6 @@ xiofile_t *xioopen(const char *addr,	/* address specification */
 
    if ((xfd = xioparse_dual(&addr)) == NULL) {
       return NULL;
-   }
-   /*!! support n socks */
-   if (!sock[0]) {
-      sock[0] = xfd;
-   } else {
-      sock[1] = xfd;
    }
    if (xioopen_dual(xfd, xioflags) < 0) {
       /*!!! free something? */

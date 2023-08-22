@@ -1,5 +1,5 @@
 /* source: socat.c */
-/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this is the main source, including command line option parsing, general
@@ -53,7 +53,6 @@ struct {
 };
 
 void socat_usage(FILE *fd);
-void socat_opt_hint(FILE *fd, char a, char b);
 void socat_version(FILE *fd);
 int socat(const char *address1, const char *address2);
 int _socat(void);
@@ -73,7 +72,7 @@ static const char socatversion[] =
       ;
 static const char timestamp[] = BUILD_DATE;
 
-const char copyright_socat[] = "socat by Gerhard Rieger and contributors - see www.dest-unreach.org";
+const char copyright_socat[] = "socat by Gerhard Rieger - see www.dest-unreach.org";
 #if WITH_OPENSSL
 const char copyright_openssl[] = "This product includes software developed by the OpenSSL Project for use in the OpenSSL Toolkit. (http://www.openssl.org/)";
 const char copyright_ssleay[] = "This product includes software written by Tim Hudson (tjh@cryptsoft.com)";
@@ -109,8 +108,7 @@ int main(int argc, const char *argv[]) {
    arg1 = argv+1;  --argc;
    while (arg1[0] && (arg1[0][0] == '-')) {
       switch (arg1[0][1]) {
-      case 'V':  if (arg1[0][2])  { socat_usage(stderr); Exit(1); }
-	 socat_version(stdout); Exit(0);
+      case 'V': socat_version(stdout); Exit(0);
 #if WITH_HELP
       case '?':
       case 'h':
@@ -118,21 +116,9 @@ int main(int argc, const char *argv[]) {
 	 xioopenhelp(stdout, (arg1[0][2]=='?'||arg1[0][2]=='h') ? (arg1[0][3]=='?'||arg1[0][3]=='h') ? 2 : 1 : 0);
 	 Exit(0);
 #endif /* WITH_HELP */
-      case 'd':
-	 a = *arg1+1;
-	 while (*a)  {
-	    if (*a == 'd') {
-	       diag_set('d', NULL);
-	    } else {
-	       socat_usage(stderr);
-	       Exit(1);
-	    }
-	    ++a;
-	 }
-	 break;
+      case 'd': diag_set('d', NULL); break;
 #if WITH_FILAN
-      case 'D':  if (arg1[0][2])  { socat_opt_hint(stderr, arg1[0][1], arg1[0][2]); Exit(1); }
-	 socat_opts.debug = true; break;
+      case 'D': socat_opts.debug = true; break;
 #endif
       case 'l':
 	 switch (arg1[0][2]) {
@@ -170,10 +156,8 @@ int main(int argc, const char *argv[]) {
 	    break;
 	 }
 	 break;
-      case 'v':  if (arg1[0][2])  { socat_opt_hint(stderr, arg1[0][1], arg1[0][2]); Exit(1); }
-	 socat_opts.verbose = true; break;
-      case 'x':  if (arg1[0][2])  { socat_opt_hint(stderr, arg1[0][1], arg1[0][2]); Exit(1); }
-	 socat_opts.verbhex = true; break;
+      case 'v': socat_opts.verbose = true; break;
+      case 'x': socat_opts.verbhex = true; break;
       case 'b': if (arg1[0][2]) {
 	    a = *arg1+2;
 	 } else {
@@ -185,7 +169,7 @@ int main(int argc, const char *argv[]) {
 	 }
 	 socat_opts.bufsiz = strtoul(a, (char **)&a, 0);
 	 break;
-      case 's':  if (arg1[0][2])  { socat_opt_hint(stderr, arg1[0][1], arg1[0][2]); Exit(1); }
+      case 's':
 	 diag_set_int('e', E_FATAL); break;
       case 't': if (arg1[0][2]) {
 	    a = *arg1+2;
@@ -215,12 +199,9 @@ int main(int argc, const char *argv[]) {
 	 socat_opts.total_timeout.tv_usec =
 	    (rto-socat_opts.total_timeout.tv_sec) * 1000000; 
 	 break;
-      case 'u':  if (arg1[0][2])  { socat_opt_hint(stderr, arg1[0][1], arg1[0][2]); Exit(1); }
-	 socat_opts.lefttoright = true; break;
-      case 'U':  if (arg1[0][2])  { socat_opt_hint(stderr, arg1[0][1], arg1[0][2]); Exit(1); }
-	 socat_opts.righttoleft = true; break;
-      case 'g':  if (arg1[0][2])  { socat_opt_hint(stderr, arg1[0][1], arg1[0][2]); Exit(1); }
-	 xioopts_ignoregroups = true; break;
+      case 'u': socat_opts.lefttoright = true; break;
+      case 'U': socat_opts.righttoleft = true; break;
+      case 'g': xioopts_ignoregroups = true; break;
       case 'L': if (socat_opts.lock.lockfile)
 	     Error("only one -L and -W option allowed");
 	 if (arg1[0][2]) {
@@ -255,7 +236,6 @@ int main(int argc, const char *argv[]) {
 #if WITH_IP6
       case '6':
 #endif
-	 if (arg1[0][2])  { socat_opt_hint(stderr, arg1[0][1], arg1[0][2]); Exit(1); }
 	 xioopts.default_ip = arg1[0][1];
 	 xioopts.preferred_ip = arg1[0][1];
 	 break;
@@ -310,7 +290,7 @@ int main(int argc, const char *argv[]) {
       sigfillset(&act.sa_mask);
       act.sa_flags = 0;
       act.sa_handler = socat_signal;
-      /* not sure which signals should be caught and print a message */
+      /* not sure which signals should be cauhgt and print a message */
       Sigaction(SIGHUP,  &act, NULL);
       Sigaction(SIGINT,  &act, NULL);
       Sigaction(SIGQUIT, &act, NULL);
@@ -353,7 +333,7 @@ void socat_usage(FILE *fd) {
    fputs("      -hh    like -h, plus a list of all common address option names\n", fd);
    fputs("      -hhh   like -hh, plus a list of all available address option names\n", fd);
 #endif /* WITH_HELP */
-   fputs("      -d[ddd]         increase verbosity (use up to 4 times; 2 are recommended)\n", fd);
+   fputs("      -d     increase verbosity (use up to 4 times; 2 are recommended)\n", fd);
 #if WITH_FILAN
    fputs("      -D     analyze file descriptors before loop\n", fd);
 #endif
@@ -381,11 +361,6 @@ void socat_usage(FILE *fd) {
 #if WITH_IP6
    fputs("      -6     prefer IPv6 if version is not explicitly specified\n", fd);
 #endif
-}
-
-void socat_opt_hint(FILE *fd, char a, char b) {
-   fprintf(fd, "Do not merge single character options, i.e. use \"-%c -%c\" instead of \"-%c%c\"\n",
-	   a, b, a, b);
 }
 
 
@@ -1076,10 +1051,10 @@ int _socat(void) {
 		   XIO_RDSTREAM(sock1)->fd);	/*! */
 	    mayrd1 = true;
 	    polling = 1;	/* do not hook this eof fd to poll for pollintv*/
-	 } else if (XIO_RDSTREAM(sock1)->eof <= 2) {
+	 } else {
 	    Notice1("socket 1 (fd %d) is at EOF", XIO_GETRDFD(sock1));
 	    xioshutdown(sock2, SHUT_WR);
-	    XIO_RDSTREAM(sock1)->eof = 3;
+	    XIO_RDSTREAM(sock1)->eof = 2;
 	    XIO_RDSTREAM(sock1)->ignoreeof = false;
 	 }
       } else if (polling && XIO_RDSTREAM(sock1)->ignoreeof) {
@@ -1099,10 +1074,10 @@ int _socat(void) {
 		   XIO_RDSTREAM(sock2)->fd);
 	    mayrd2 = true;
 	    polling = 1;	/* do not hook this eof fd to poll for pollintv*/
-	 } else if (XIO_RDSTREAM(sock2)->eof <= 2) {
+	 } else {
 	    Notice1("socket 2 (fd %d) is at EOF", XIO_GETRDFD(sock2));
 	    xioshutdown(sock1, SHUT_WR);
-	    XIO_RDSTREAM(sock2)->eof = 3;
+	    XIO_RDSTREAM(sock2)->eof = 2;
 	    XIO_RDSTREAM(sock2)->ignoreeof = false;
 	 }
       } else if (polling && XIO_RDSTREAM(sock2)->ignoreeof) {
@@ -1447,13 +1422,12 @@ void socat_signal(int signum) {
    diag_in_handler = 1;
    Notice1("socat_signal(): handling signal %d", signum);
    switch (signum) {
+   case SIGQUIT:
    case SIGILL:
    case SIGABRT:
    case SIGBUS:
    case SIGFPE:
    case SIGSEGV:
-      diag_immediate_exit = 1;
-   case SIGQUIT:
    case SIGPIPE:
       diag_set_int('x', 128+signum);	/* in case Error exits for us */
       Error1("exiting on signal %d", signum);

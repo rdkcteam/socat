@@ -1,5 +1,5 @@
 /* source: sslcls.c */
-/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* explicit system call and C library trace function, for those who miss strace
@@ -55,7 +55,6 @@ const SSL_METHOD *sycSSLv2_server_method(void) {
 }
 #endif
 
-#if HAVE_SSLv3_client_method
 const SSL_METHOD *sycSSLv3_client_method(void) {
    const SSL_METHOD *result;
    Debug("SSLv3_client_method()");
@@ -63,9 +62,7 @@ const SSL_METHOD *sycSSLv3_client_method(void) {
    Debug1("SSLv3_client_method() -> %p", result);
    return result;
 }
-#endif
 
-#if HAVE_SSLv3_server_method
 const SSL_METHOD *sycSSLv3_server_method(void) {
    const SSL_METHOD *result;
    Debug("SSLv3_server_method()");
@@ -73,7 +70,6 @@ const SSL_METHOD *sycSSLv3_server_method(void) {
    Debug1("SSLv3_server_method() -> %p", result);
    return result;
 }
-#endif
 
 const SSL_METHOD *sycSSLv23_client_method(void) {
    const SSL_METHOD *result;
@@ -91,7 +87,6 @@ const SSL_METHOD *sycSSLv23_server_method(void) {
    return result;
 }
 
-#if HAVE_TLSv1_client_method
 const SSL_METHOD *sycTLSv1_client_method(void) {
    const SSL_METHOD *result;
    Debug("TLSv1_client_method()");
@@ -99,9 +94,7 @@ const SSL_METHOD *sycTLSv1_client_method(void) {
    Debug1("TLSv1_client_method() -> %p", result);
    return result;
 }
-#endif
 
-#if HAVE_TLSv1_server_method
 const SSL_METHOD *sycTLSv1_server_method(void) {
    const SSL_METHOD *result;
    Debug("TLSv1_server_method()");
@@ -109,7 +102,6 @@ const SSL_METHOD *sycTLSv1_server_method(void) {
    Debug1("TLSv1_server_method() -> %p", result);
    return result;
 }
-#endif
 
 #if HAVE_TLSv1_1_client_method
 const SSL_METHOD *sycTLSv1_1_client_method(void) {
@@ -151,7 +143,6 @@ const SSL_METHOD *sycTLSv1_2_server_method(void) {
 }
 #endif
 
-#if HAVE_DTLSv1_client_method
 const SSL_METHOD *sycDTLSv1_client_method(void) {
    const SSL_METHOD *result;
    Debug("DTLSv1_client_method()");
@@ -159,9 +150,7 @@ const SSL_METHOD *sycDTLSv1_client_method(void) {
    Debug1("DTLSv1_client_method() -> %p", result);
    return result;
 }
-#endif
 
-#if HAVE_DTLSv1_server_method
 const SSL_METHOD *sycDTLSv1_server_method(void) {
    const SSL_METHOD *result;
    Debug("DTLSv1_server_method()");
@@ -169,7 +158,6 @@ const SSL_METHOD *sycDTLSv1_server_method(void) {
    Debug1("DTLSv1_server_method() -> %p", result);
    return result;
 }
-#endif
 
 SSL_CTX *sycSSL_CTX_new(const SSL_METHOD *method) {
    SSL_CTX *result;
@@ -343,7 +331,6 @@ void sycSSL_free(SSL *ssl) {
    return;
 }
 
-#if !defined(OPENSSL_NO_EGD) && HAVE_RAND_egd
 int sycRAND_egd(const char *path) {
    int result;
    Debug1("RAND_egd(\"%s\")", path);
@@ -351,7 +338,6 @@ int sycRAND_egd(const char *path) {
    Debug1("RAND_egd() -> %d", result);
    return result;
 }
-#endif
 
 DH *sycPEM_read_bio_DHparams(BIO *bp, DH **x, pem_password_cb *cb, void *u) {
    DH *result;
@@ -389,7 +375,7 @@ int sycFIPS_mode_set(int onoff) {
 }
 #endif /* WITH_FIPS */
 
-#if OPENSSL_VERSION_NUMBER >= 0x00908000L && !defined(OPENSSL_NO_COMP)
+#if OPENSSL_VERSION_NUMBER >= 0x00908000L
 const COMP_METHOD *sycSSL_get_current_compression(SSL *ssl) {
    const COMP_METHOD *result;
    Debug1("SSL_get_current_compression(%p)", ssl);

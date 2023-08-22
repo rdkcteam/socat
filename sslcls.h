@@ -1,5 +1,5 @@
 /* source: sslcls.h */
-/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __sslcls_h_included
@@ -55,7 +55,7 @@ BIO *sycBIO_new_file(const char *filename, const char *mode);
 
 int sycFIPS_mode_set(int onoff);
 
-#if OPENSSL_VERSION_NUMBER >= 0x00908000L && !defined(OPENSSL_NO_COMP)
+#if OPENSSL_VERSION_NUMBER >= 0x00908000L
 const COMP_METHOD *sycSSL_get_current_compression(SSL *ssl);
 const COMP_METHOD *sycSSL_get_current_expansion(SSL *ssl);
 const char *sycSSL_COMP_get_name(const COMP_METHOD *comp);
@@ -77,12 +77,6 @@ const char *sycSSL_COMP_get_name(const COMP_METHOD *comp);
 #define sycSSLv23_server_method() SSLv23_server_method()
 #define sycTLSv1_client_method() TLSv1_client_method()
 #define sycTLSv1_server_method() TLSv1_server_method()
-#define sycTLSv1_1_client_method() TLSv1_1_client_method()
-#define sycTLSv1_1_server_method() TLSv1_1_server_method()
-#define sycTLSv1_2_client_method() TLSv1_2_client_method()
-#define sycTLSv1_2_server_method() TLSv1_2_server_method()
-#define sycDTLSv1_client_method() DTLSv1_client_method()
-#define sycDTLSv1_server_method() DTLSv1_server_method()
 #define sycSSL_CTX_new(m) SSL_CTX_new(m)
 #define sycSSL_new(c) SSL_new(c)
 #define sycSSL_CTX_load_verify_locations(c,f,p) SSL_CTX_load_verify_locations(c,f,p)

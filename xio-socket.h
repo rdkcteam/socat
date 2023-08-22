@@ -1,5 +1,5 @@
 /* source: xio-socket.h */
-/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
+/* Copyright Gerhard Rieger 2001-2009 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __xio_socket_h_included
@@ -35,7 +35,9 @@ extern const struct optdesc opt_so_error;
 extern const struct optdesc opt_so_type;
 extern const struct optdesc opt_so_dontroute;
 extern const struct optdesc opt_so_rcvlowat;
+extern const struct optdesc opt_so_rcvtimeo;
 extern const struct optdesc opt_so_sndlowat;
+extern const struct optdesc opt_so_sndtimeo;
 extern const struct optdesc opt_so_audit;
 extern const struct optdesc opt_so_attach_filter;
 extern const struct optdesc opt_so_detach_filter;

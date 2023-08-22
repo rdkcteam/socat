@@ -1,5 +1,5 @@
 /* source: xio-ip.c */
-/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for IP related functions */
@@ -74,19 +74,11 @@ const struct optdesc opt_ip_recvdstaddr = { "ip-recvdstaddr", "recvdstaddr",OPT_
 const struct optdesc opt_ip_recvif = { "ip-recvif", "recvdstaddrif",OPT_IP_RECVIF, GROUP_SOCK_IP, PH_PASTSOCKET, TYPE_INT, OFUNC_SOCKOPT, SOL_IP, IP_RECVIF };
 #endif
 
-#if WITH_RES_DEPRECATED
-#  define WITH_RES_AAONLY 1
-#  define WITH_RES_PRIMARY 1
-#endif /* WITH_RES_DEPRECATED */
 #if HAVE_RESOLV_H
 const struct optdesc opt_res_debug    = { "res-debug",    NULL,       OPT_RES_DEBUG,    GROUP_SOCK_IP, PH_INIT, TYPE_BOOL, OFUNC_OFFSET_MASKS, XIO_OFFSETOF(para.socket.ip.res_opts), XIO_SIZEOF(para.socket.ip.res_opts), RES_DEBUG };
-#if WITH_RES_AAONLY
 const struct optdesc opt_res_aaonly   = { "res-aaonly",   "aaonly",   OPT_RES_AAONLY,   GROUP_SOCK_IP, PH_INIT, TYPE_BOOL, OFUNC_OFFSET_MASKS, XIO_OFFSETOF(para.socket.ip.res_opts), XIO_SIZEOF(para.socket.ip.res_opts), RES_AAONLY };
-#endif
 const struct optdesc opt_res_usevc    = { "res-usevc",    "usevc",    OPT_RES_USEVC,    GROUP_SOCK_IP, PH_INIT, TYPE_BOOL, OFUNC_OFFSET_MASKS, XIO_OFFSETOF(para.socket.ip.res_opts), XIO_SIZEOF(para.socket.ip.res_opts), RES_USEVC };
-#if WITH_RES_PRIMARY
 const struct optdesc opt_res_primary  = { "res-primary",  "primary",  OPT_RES_PRIMARY,  GROUP_SOCK_IP, PH_INIT, TYPE_BOOL, OFUNC_OFFSET_MASKS, XIO_OFFSETOF(para.socket.ip.res_opts), XIO_SIZEOF(para.socket.ip.res_opts), RES_PRIMARY };
-#endif
 const struct optdesc opt_res_igntc    = { "res-igntc",    "igntc",    OPT_RES_IGNTC,    GROUP_SOCK_IP, PH_INIT, TYPE_BOOL, OFUNC_OFFSET_MASKS, XIO_OFFSETOF(para.socket.ip.res_opts), XIO_SIZEOF(para.socket.ip.res_opts), RES_IGNTC };
 const struct optdesc opt_res_recurse  = { "res-recurse",  "recurse",  OPT_RES_RECURSE,  GROUP_SOCK_IP, PH_INIT, TYPE_BOOL, OFUNC_OFFSET_MASKS, XIO_OFFSETOF(para.socket.ip.res_opts), XIO_SIZEOF(para.socket.ip.res_opts), RES_RECURSE };
 const struct optdesc opt_res_defnames = { "res-defnames", "defnames", OPT_RES_DEFNAMES, GROUP_SOCK_IP, PH_INIT, TYPE_BOOL, OFUNC_OFFSET_MASKS, XIO_OFFSETOF(para.socket.ip.res_opts), XIO_SIZEOF(para.socket.ip.res_opts), RES_DEFNAMES };
@@ -121,7 +113,7 @@ unsigned long res_opts() {
    hostname.domain (fq hostname resolving to IPv4 or IPv6 address)
  service: the port specification; may be numeric or symbolic
  family: PF_INET, PF_INET6, or PF_UNSPEC permitting both
- socktype: SOCK_STREAM, SOCK_DGRAM, ...
+ socktype: SOCK_STREAM, SOCK_DGRAM
  protocol: IPPROTO_UDP, IPPROTO_TCP
  sau: an uninitialized storage for the resulting socket address
  returns: STAT_OK, STAT_RETRYLATER
@@ -175,8 +167,30 @@ int xiogetaddrinfo(const char *node, const char *service,
    /* the resolver functions might handle numeric forms of node names by
       reverse lookup, that's not what we want.
       So we detect these and handle them specially */
-   if (0) { 	/* for canonical reasons */
-      ;
+   if (node && isdigit(node[0]&0xff)) {
+#if HAVE_GETADDRINFO
+      hints.ai_flags |= AI_NUMERICHOST;
+#endif /* HAVE_GETADDRINFO */
+      if (family == PF_UNSPEC) {
+	 family = PF_INET;
+#if HAVE_GETADDRINFO
+      } else if (family == PF_INET6) {
+	 /* map "explicitely" into IPv6 address space; getipnodebyname() does
+	    this with AI_V4MAPPED, but not getaddrinfo() */
+	 if ((numnode = Malloc(strlen(node)+7+1)) == NULL) {
+#if HAVE_RESOLV_H
+	    if (res_opts0 | res_opts1) {
+	       _res.options = (_res.options & (~res_opts0&~res_opts1) |
+			       save_res_opts& ( res_opts0| res_opts1));
+	    }
+#endif
+	    return STAT_NORETRY;
+	 }
+	 sprintf(numnode, "::ffff:%s", node);
+	 node = numnode;
+	 hints.ai_flags |= AI_NUMERICHOST;
+#endif /* HAVE_GETADDRINFO */
+      }
 #if WITH_IP6
    } else if (node && node[0] == '[' && node[(nodelen=strlen(node))-1]==']') {
       if ((numnode = Malloc(nodelen-1)) == NULL) {
@@ -202,9 +216,18 @@ int xiogetaddrinfo(const char *node, const char *service,
    if (node != NULL || service != NULL) {
       struct addrinfo *record;
 
-      /* here was code that helped SCTP to use service names.
-	 If you need this feature enhance your /etc/services with sctp entries */
-
+      if (socktype != SOCK_STREAM && socktype != SOCK_DGRAM) {
+	 /* actual socket type value is not supported - fallback to a good one */
+	 socktype = SOCK_DGRAM;
+      }
+      if (protocol != IPPROTO_TCP && protocol != IPPROTO_UDP) {
+	 /* actual protocol value is not supported - fallback to a good one */
+	 if (socktype == SOCK_DGRAM) {
+	    protocol = IPPROTO_UDP;
+	 } else {
+	    protocol = IPPROTO_TCP;
+	 }
+      }
       hints.ai_flags |= AI_PASSIVE;
       hints.ai_family = family;
       hints.ai_socktype = socktype;
@@ -216,8 +239,7 @@ int xiogetaddrinfo(const char *node, const char *service,
 
       if ((error_num = Getaddrinfo(node, service, &hints, &res)) != 0) {
 	 Error7("getaddrinfo(\"%s\", \"%s\", {%d,%d,%d,%d}, {}): %s",
-		node?node:"NULL", service?service:"NULL",
-		hints.ai_flags, hints.ai_family,
+		node, service, hints.ai_flags, hints.ai_family,
 		hints.ai_socktype, hints.ai_protocol,
 		(error_num == EAI_SYSTEM)?
 		strerror(errno):gai_strerror(error_num));
@@ -442,8 +464,7 @@ int xiolog_ancillary_ip(struct cmsghdr *cmsg, int *num,
 			char *nambuff, int namlen,
 			char *envbuff, int envlen,
 			char *valbuff, int vallen) {
-   int cmsgctr = 0;
-   const char *cmsgtype, *cmsgname = NULL, *cmsgenvn = NULL;
+   const char *cmsgtype, *cmsgname = NULL, *cmsgenvn = NULL, *cmsgfmt = NULL;
    size_t msglen;
    char scratch1[16];	/* can hold an IPv4 address in ASCII */
 #if WITH_IP4 && defined(IP_PKTINFO) && HAVE_STRUCT_IN_PKTINFO
@@ -533,17 +554,17 @@ int xiolog_ancillary_ip(struct cmsghdr *cmsg, int *num,
 #ifdef IP_RECVOPTS
    case IP_RECVOPTS:
 #endif
-      cmsgtype = "IP_OPTIONS"; cmsgname = "options"; cmsgctr = -1; break;
+      cmsgtype = "IP_OPTIONS"; cmsgname = "options"; cmsgfmt = NULL; break;
    case IP_TOS:
-      cmsgtype = "IP_TOS";     cmsgname = "tos"; cmsgctr = msglen; break;
+      cmsgtype = "IP_TOS";     cmsgname = "tos"; cmsgfmt = "%u"; break;
    case IP_TTL: /* Linux */
 #ifdef IP_RECVTTL
    case IP_RECVTTL: /* FreeBSD */
 #endif
-      cmsgtype = "IP_TTL";     cmsgname = "ttl"; cmsgctr = msglen; break;
+      cmsgtype = "IP_TTL";     cmsgname = "ttl"; cmsgfmt = "%u"; break;
    }
    /* when we come here we provide a single parameter
-      with type in cmsgtype, name in cmsgname, value length in msglen */
+      with type in cmsgtype, name in cmsgname, printf format in cmsgfmt */
    *num = 1;
    if (strlen(cmsgtype) >= typlen)  rc = STAT_WARNING;
    typbuff[0] = '\0'; strncat(typbuff, cmsgtype, typlen-1);
@@ -555,14 +576,10 @@ int xiolog_ancillary_ip(struct cmsghdr *cmsg, int *num,
    } else {
       envbuff[0] = '\0';
    }
-   switch (cmsgctr) {
-   case sizeof(char):
-      snprintf(valbuff, vallen, "%u", *(unsigned char *)CMSG_DATA(cmsg)); break;
-   case sizeof(int):
-      snprintf(valbuff, vallen, "%u",    (*(unsigned int *)CMSG_DATA(cmsg))); break;
-   case 0:
-      xiodump(CMSG_DATA(cmsg), msglen, valbuff, vallen, 0); break;
-   default: break;
+   if (cmsgfmt != NULL) {
+      snprintf(valbuff, vallen, cmsgfmt, *(unsigned char *)CMSG_DATA(cmsg));
+   } else {
+      xiodump(CMSG_DATA(cmsg), msglen, valbuff, vallen, 0);
    }
    return rc;
 }

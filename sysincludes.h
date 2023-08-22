@@ -1,11 +1,10 @@
 /* source: sysincludes.h */
-/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __sysincludes_h_included
 #define __sysincludes_h_included 1
 
-#include <stddef.h>	/* ptrdiff_t */
 #if HAVE_STDBOOL_H
 #include <stdbool.h>	/* bool, true, false */
 #endif

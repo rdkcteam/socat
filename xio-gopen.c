@@ -1,5 +1,5 @@
 /* source: xio-gopen.c */
-/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
+/* Copyright Gerhard Rieger 2001-2010 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for opening addresses of generic open type */
@@ -90,9 +90,9 @@ static int xioopen_gopen(int argc, const char *argv[], struct opt *opts, int xio
 	 return result;
 #ifdef I_PUSH
       if (S_ISCHR(st_mode)) {
-	 Ioctl(result, I_PUSH, "ptem\0\0\0");	/* pad string length ... */
-	 Ioctl(result, I_PUSH, "ldterm\0");	/* ... to requirements of ... */
-	 Ioctl(result, I_PUSH, "ttcompat");	/* ... AdressSanitizer */
+	 Ioctl(result, I_PUSH, "ptem");
+	 Ioctl(result, I_PUSH, "ldterm");
+	 Ioctl(result, I_PUSH, "ttcompat");
       }
 #endif
       fd->stream.fd = result;

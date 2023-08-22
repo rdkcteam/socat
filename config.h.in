@@ -1,5 +1,5 @@
 /* source: config.h.in */
-/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __config_h_included
@@ -98,9 +98,6 @@
 
 /* Define if you have the nanosleep function.  */
 #undef HAVE_NANOSLEEP
-
-/* Define if you have the gethostbyname function.  */
-#undef HAVE_GETHOSTBYNAME
 
 /* Define if you have the getaddrinfo function.  */
 #undef HAVE_GETADDRINFO
@@ -321,10 +318,6 @@
 /* fdset may have component fds_bits or __fds_bits */
 #undef HAVE_FDS_BITS
 
-/* struct termios may have components c_ispeed,c_ospeed */
-#undef HAVE_STRUCT_TERMIOS_C_ISPEED
-#undef HAVE_STRUCT_TERMIOS_C_OSPEED
-
 /* Define if you have the sa_family_t */
 #undef HAVE_TYPE_SA_FAMILY_T
 
@@ -333,6 +326,20 @@
 
 /* define if you have struct sock_extended_err */
 #undef HAVE_STRUCT_SOCK_EXTENDED_ERR
+
+/* Define if your struct termios has component c_ispeed */
+#undef HAVE_TERMIOS_ISPEED
+
+/* the offset of c_ispeed in struct termios - usable in an speed_t array.
+   Applies only when HAVE_TERMIOS_ISPEED is set */
+#undef ISPEED_OFFSET
+
+/* the offset of c_ospeed in struct termios - see ISPEED_OFFSET */
+#ifdef ISPEED_OFFSET
+#  define OSPEED_OFFSET (ISPEED_OFFSET+1)
+#else
+#  undef OSPEED_OFFSET
+#endif
 
 /* Define if your termios.h likes _SVID3 defined */
 #undef _SVID3
@@ -351,9 +358,6 @@
 
 /* Define if you have struct linger */
 #undef HAVE_STRUCT_LINGER
-
-/* Define if you have struct ip */
-#undef HAVE_STRUCT_IP
 
 /* Define if you have struct ip_mreq */
 #undef HAVE_STRUCT_IP_MREQ
@@ -412,30 +416,12 @@
 /* Define if you have the unsetenv function. not on HP-UX */
 #undef HAVE_UNSETENV
 
-/* Define if you have the cfsetispeed,cfgetispeed,cfsetspeed,cfgetospeed function */
-#undef HAVE_CFSETISPEED
-#undef HAVE_CFSETOSPEED
-
-#if HAVE_CFSETISPEED
-#  define HAVE_TERMIOS_ISPEED 1
-#endif
-#if HAVE_CFSETOSPEED
-#  define HAVE_TERMIOS_OSPEED 1
-#endif
-#if defined(HAVE_TERMIOS_ISPEED) && defined(HAVE_TERMIOS_OSPEED)
-#  define HAVE_TERMIOS_SPEED 1
-#endif
-
 /* Define if you have the SSLv2 client and server method functions. not in new openssl */
 #undef HAVE_SSLv2_client_method
 #undef HAVE_SSLv2_server_method
 
 /* Define if you have the HAVE_SSL_CTX_set_default_verify_paths function */
 #undef HAVE_SSL_CTX_set_default_verify_paths
-
-/* Define if you have the TLS client and server method functions. not in old openssl? */
-#undef HAVE_TLS_client_method
-#undef HAVE_TLS_server_method
 
 /* Define if you have the SSLv3 client and server method functions. not in new openssl */
 #undef HAVE_SSLv3_client_method
@@ -460,24 +446,6 @@
 /* Define if you have the DTLSv1 client and server method functions */
 #undef HAVE_DTLSv1_client_method
 #undef HAVE_DTLSv1_server_method
-
-/* Define if you have the EC_KEY type */
-#undef HAVE_TYPE_EC_KEY
-
-/* Define if you have the OpenSSL RAND_egd function */
-#undef HAVE_RAND_egd
-
-/* Define if you have the OpenSSL RAND_status function */
-#undef HAVE_RAND_status
-
-/* Define if you have the OpenSSL DH_set0_pqg function */
-#undef HAVE_DH_set0_pqg
-
-/* Define if you have the OpenSSL ASN1_STRING_get0_data function */
-#undef HAVE_ASN1_STRING_get0_data
-
-/* Define if you have the OpenSSL SSL_CTX_clear_mode macro or function */
-#undef HAVE_SSL_CTX_clear_mode
 
 /* Define if you have the flock function */
 #undef HAVE_FLOCK
@@ -569,7 +537,6 @@
 #undef HAVE_BASIC_OFF_T
 #undef HAVE_BASIC_OFF64_T
 #undef HAVE_BASIC_DEV_T
-#undef HAVE_BASIC_SPEED_T
 
 #undef HAVE_BASIC_SOCKLEN_T
 
@@ -632,8 +599,6 @@
 #undef WITH_PTY
 #undef WITH_EXT2
 #undef WITH_OPENSSL
-#undef WITH_OPENSSL_METHOD
-#undef WITH_RES_DEPRECATED 	/* AAONLY,PRIMARY */
 #define WITH_STREAMS 1
 #undef WITH_FIPS
 #undef OPENSSL_FIPS

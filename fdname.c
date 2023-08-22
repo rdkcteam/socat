@@ -1,5 +1,5 @@
 /* source: fdname.c */
-/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
+/* Copyright Gerhard Rieger 2003-2011 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* the subroutine sockname prints the basic info about the address of a socket

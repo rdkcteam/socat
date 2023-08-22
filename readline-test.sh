@@ -1,6 +1,6 @@
-#! /usr/bin/env bash
+#! /bin/bash
 # source: readline-test.sh
-# Copyright Gerhard Rieger and contributors (see file CHANGES)
+# Copyright Gerhard Rieger 2003-2008
 # Published under the GNU General Public License V.2, see file COPYING
 
 # script that simulates a simple program with authentication.

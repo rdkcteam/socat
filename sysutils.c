@@ -1,5 +1,5 @@
 /* source: sysutils.c */
-/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* translate socket addresses into human readable form */
@@ -538,8 +538,8 @@ int xiopoll(struct pollfd fds[], unsigned long nfds, struct timeval *timeout) {
       }
       return result;
    }
-   {
 #if HAVE_POLL
+   {
       int ms = 0;
       if (timeout == NULL) {
 	 ms = -1;
@@ -549,6 +549,7 @@ int xiopoll(struct pollfd fds[], unsigned long nfds, struct timeval *timeout) {
       /*! timeout */
       return Poll(fds, nfds, ms);
 #else /* HAVE_POLL */
+   } else {
       Error("poll() not available");
       return -1;
 #endif /* !HAVE_POLL */
@@ -694,6 +695,7 @@ int _xiosetenv(const char *envname, const char *value, int overwrite, const char
    0: keep old value
    1: overwrite with new value
    2: append to old value, separated by *sep
+a non zero value of overwrite lets the old value be overwritten.
    returns 0 on success or <0 if an error occurred. */
 int xiosetenv(const char *varname, const char *value, int overwrite, const char *sep) {
 #  define XIO_ENVNAMELEN 256
@@ -709,7 +711,7 @@ int xiosetenv(const char *varname, const char *value, int overwrite, const char 
    l += 1;
    strncat(envname+l, varname, XIO_ENVNAMELEN-l-1);
    return _xiosetenv(envname, value, overwrite, sep);
-#  undef XIO_ENVNAMELEN
+#  undef ENVNAMELEN
 }
 
 int xiosetenv2(const char *varname, const char *varname2, const char *value,

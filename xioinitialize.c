@@ -1,5 +1,5 @@
 /* source: xioinitialize.c */
-/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
+/* Copyright Gerhard Rieger 2001-2011 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for the initialize function */
@@ -62,6 +62,16 @@ int xioinitialize(void) {
       assert(tdata.termarg.c_oflag == tdata.flags[1]);
       assert(tdata.termarg.c_cflag == tdata.flags[2]);
       assert(tdata.termarg.c_lflag == tdata.flags[3]);
+#if HAVE_TERMIOS_ISPEED && (ISPEED_OFFSET != -1) && (OSPEED_OFFSET != -1)
+#if defined(ISPEED_OFFSET) && (ISPEED_OFFSET != -1)
+#if defined(OSPEED_OFFSET) && (OSPEED_OFFSET != -1)
+      tdata.termarg.c_ispeed = 0x56789abc;
+      tdata.termarg.c_ospeed = 0x6789abcd;
+      assert(tdata.termarg.c_ispeed == tdata.speeds[ISPEED_OFFSET]);
+      assert(tdata.termarg.c_ospeed == tdata.speeds[OSPEED_OFFSET]);
+#endif
+#endif
+#endif
    }
 #endif
 
@@ -168,7 +178,6 @@ int xio_forked_inchild(void) {
    int result = 0;
    int i;
 
-   diag_fork();
    for (i=0; i<NUMUNKNOWN; ++i) {
       diedunknown[i] = 0;
    }

@@ -1,5 +1,5 @@
 /* source: xioopts.h */
-/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __xioopts_h_included
@@ -665,6 +665,9 @@ enum e_optcode {
 #ifdef SO_RCVLOWAT
    OPT_SO_RCVLOWAT,
 #endif
+#ifdef SO_RCVTIMEO
+   OPT_SO_RCVTIMEO,
+#endif
    OPT_SO_REUSEADDR,
 #ifdef SO_REUSEPORT
    OPT_SO_REUSEPORT,
@@ -682,6 +685,9 @@ enum e_optcode {
    OPT_SO_SNDBUF_LATE,
 #ifdef SO_SNDLOWAT
    OPT_SO_SNDLOWAT,
+#endif
+#ifdef SO_SNDTIMEO
+   OPT_SO_SNDTIMEO,
 #endif
    OPT_SO_TIMESTAMP,	/* Linux */
    OPT_SO_TYPE,

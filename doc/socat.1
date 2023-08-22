@@ -507,7 +507,7 @@ system call
 (example)\&.
 This operation fails on UNIX domain sockets\&. 
 .br 
-Note: This address type is rarely useful in bidirectional mode\&.
+Note: This address type is rarly useful in bidirectional mode\&.
 .br 
 Option groups: FD,REG,NAMED,OPEN 
 .br 
@@ -550,8 +550,9 @@ Option groups: FD,SOCKET,IP4,IP6,TCP,OPENSSL,RETRY
 .br 
 Useful options:
 cipher,
+method,
 verify,
-commonname,
+commonname
 cafile,
 capath,
 certificate,
@@ -583,8 +584,9 @@ Option groups: FD,SOCKET,IP4,IP6,TCP,LISTEN,OPENSSL,CHILD,RANGE,RETRY
 Useful options:
 pf,
 cipher,
+method,
 verify,
-commonname,
+commonname
 cafile,
 capath,
 certificate,
@@ -701,7 +703,7 @@ STDIO
 .IP "\fB\f(CWSCTP\-CONNECT:<host>:<port>\fP\fP"
 Establishes an SCTP stream connection to the specified <host> [IP
 address] and <port> [TCP service]
-using IP version 4 or 6 depending on address specification, name
+using TCP/IP version 4 or 6 depending on address specification, name
 resolution, or option pf\&.
 .br 
 Option groups: FD,SOCKET,IP4,IP6,SCTP,CHILD,RETRY 
@@ -735,8 +737,8 @@ Like SCTP\-CONNECT, but only supports IPv6 protocol\&.
 Option groups: FD,SOCKET,IP6,SCTP,CHILD,RETRY 
 .br 
 .IP "\fB\f(CWSCTP\-LISTEN:<port>\fP\fP"
-Listens on <port> [TCP service] and accepts an
-SCTP connection\&. The IP version is 4 or the one specified with
+Listens on <port> [TCP service] and accepts a
+TCP/IP connection\&. The IP version is 4 or the one specified with
 address option pf, socat option
 (\-4, \-6), or environment variable SOCAT_DEFAULT_LISTEN_IP\&.
 Note that opening
@@ -779,7 +781,7 @@ Option groups: FD,SOCKET,LISTEN,CHILD,RANGE,IP6,SCTP,RETRY
 .br 
 .IP "\fB\f(CWSOCKET\-CONNECT:<domain>:<protocol>:<remote\-address>\fP\fP"
 Creates a stream socket using the first and second given socket parameters
-and \f(CWSOCK_STREAM\fP (see man socket(2)) and connects to the remote\-address\&.
+and \f(CWSOCK_STREAM\fP (see man socket\e(2)) and connects to the remote\-address\&.
 The two socket parameters have to be specified by int
 numbers\&. Consult your OS documentation and include files to find the
 appropriate values\&. The remote\-address must be the data
@@ -806,7 +808,7 @@ SOCKET\-LISTEN,
 SOCKET\-SENDTO
 .IP "\fB\f(CWSOCKET\-DATAGRAM:<domain>:<type>:<protocol>:<remote\-address>\fP\fP"
 Creates a datagram socket using the first three given socket parameters (see
-man socket(2)) and sends outgoing data to the remote\-address\&. The three
+man socket\e(2)) and sends outgoing data to the remote\-address\&. The three
 socket parameters have to be specified by int
 numbers\&. Consult your OS documentation and include files to find the
 appropriate values\&. The remote\-address must be the data
@@ -834,7 +836,7 @@ SOCKET\-RECV,
 SOCKET\-RECVFROM
 .IP "\fB\f(CWSOCKET\-LISTEN:<domain>:<protocol>:<local\-address>\fP\fP"
 Creates a stream socket using the first and second given socket parameters
-and \f(CWSOCK_STREAM\fP (see man socket(2)) and waits for incoming connections
+and \f(CWSOCK_STREAM\fP (see man socket\e(2)) and waits for incoming connections
 on local\-address\&. The two socket parameters have to be specified by
 int numbers\&. Consult your OS documentation and include files
 to find the appropriate values\&. The local\-address must be the
@@ -860,7 +862,7 @@ SOCKET\-LISTEN,
 SOCKET\-SENDTO,
 SOCKET\-SENDTO
 .IP "\fB\f(CWSOCKET\-RECV:<domain>:<type>:<protocol>:<local\-address>\fP\fP"
-Creates a socket using the three given socket parameters (see man socket(2))
+Creates a socket using the three given socket parameters (see man socket\e(2))
 and binds it to <local\-address>\&. Receives arriving data\&. The three
 parameters have to be specified by int numbers\&. Consult your
 OS documentation and include files to find the appropriate values\&. The
@@ -883,7 +885,7 @@ SOCKET\-DATAGRAM,
 SOCKET\-SENDTO,
 SOCKET\-RECVFROM
 .IP "\fB\f(CWSOCKET\-RECVFROM:<domain>:<type>:<protocol>:<local\-address>\fP\fP"
-Creates a socket using the three given socket parameters (see man socket(2))
+Creates a socket using the three given socket parameters (see man socket\e(2))
 and binds it to <local\-address>\&. Receives arriving data and sends replies
 back to the sender\&. The first three parameters have to be specified as
 int numbers\&. Consult your OS documentation and include files
@@ -909,7 +911,7 @@ SOCKET\-SENDTO,
 SOCKET\-RECV
 .IP "\fB\f(CWSOCKET\-SENDTO:<domain>:<type>:<protocol>:<remote\-address>\fP\fP"
 Creates a socket using the three given socket parameters (see man
-socket(2))\&. Sends outgoing data to the given address and receives replies\&.
+socket\e(2))\&. Sends outgoing data to the given address and receives replies\&.
 The three parameters have to be specified as int
 numbers\&. Consult your OS documentation and include files to find the
 appropriate values\&. The remote\-address must be the data
@@ -1399,7 +1401,7 @@ TCP\-LISTEN
 .IP "\fB\f(CWUNIX\-SENDTO:<filename>\fP\fP"
 Communicates with the specified peer socket, defined by [<filename>] assuming it is a UNIX domain datagram socket\&.
 It sends packets to and receives packets from that peer socket only\&.
-Please note that it might be necessary to bind the
+Please note that it might be neccessary to bind the
 local socket to an address (e\&.g\&. \f(CW/tmp/sock1\fP, which must not exist
 before)\&.
 This address type works well with socat UNIX\-RECVFROM and UNIX\-RECV address
@@ -1473,7 +1475,7 @@ GOPEN
 .IP "\fB\f(CWABSTRACT\-CLIENT:<string>\fP\fP"
 The ABSTRACT addresses are almost identical to the related UNIX addresses
 except that they do not address file system based sockets but an alternate
-UNIX domain address space\&. To achieve this the socket address strings are
+UNIX domain address space\&. To archieve this the socket address strings are
 prefixed with \(dq\&\e0\(dq\& internally\&. This feature is available (only?) on Linux\&.
 Option groups are the same as with the related UNIX addresses, except that
 the ABSTRACT addresses are not member of the NAMED group\&.
@@ -1554,7 +1556,7 @@ Because all current \fBsocat\fP address types are file descriptor based, these
 options may be applied to any address\&. 
 .br 
 Note: Some of these options are also member of another option group, that
-provides another, non\-fd based mechanism\&.
+provides an other, non\-fd based mechanism\&.
 For these options, it depends on the actual address type and its option groups 
 which mechanism is used\&. The second, non\-fd based mechanism is prioritized\&.
 .IP "\fB\f(CWcloexec=<bool>\fP\fP"
@@ -1739,17 +1741,17 @@ terminates the socket even if it is shared by multiple processes\&.
 long as there are still links from other processes\&.
 .br 
 Similarly, when an address of type EXEC or SYSTEM is ended, socat usually
-will explicitly kill the sub process\&. With this option, it will just close
+will explicitely kill the sub process\&. With this option, it will just close
 the file descriptors\&.
 .IP "\fB\f(CWshut\-none\fP\fP"
 Changes the (address dependent) method of shutting down the write part of a
 connection to not do anything\&.
 .IP "\fB\f(CWshut\-down\fP\fP"
 Changes the (address dependent) method of shutting down the write part of a
-connection to shutdown(fd, SHUT_WR)\&. Is only useful with sockets\&.
+connection to \f(CWshutdown\e(fd, SHUT_WR)\fP\&. Is only useful with sockets\&.
 .IP "\fB\f(CWshut\-close\fP\fP"
 Changes the (address dependent) method of shutting down the write part of a
-connection to close(fd)\&.
+connection to \f(CWclose\e(fd)\fP\&.
 .IP "\fB\f(CWshut\-null\fP\fP"
 When one address indicates EOF, \fBsocat\fP will send a zero sized packet to the
 write channel of the other address to transfer the EOF condition\&. This is
@@ -1762,8 +1764,8 @@ interprets empty datagram packets as EOF indicator (see
 shut\-null)\&.
 .IP "\fB\f(CWioctl\-void=<request>\fP\fP"
 Calls \f(CWioctl()\fP with the request value as second argument and NULL as
-third argument\&. This option allows utilizing ioctls that are not
-explicitly implemented in socat\&.
+third argument\&. This option allows to utilize ioctls that are not
+explicitely implemented in socat\&.
 .IP "\fB\f(CWioctl\-int=<request>:<value>\fP\fP"
 Calls \f(CWioctl()\fP with the request value as second argument and the integer
 value as third argument\&.
@@ -1836,7 +1838,7 @@ client unix domain sockets the default is 0\&.
 .PP 
 \fI\fBOPEN option group\fP\fP
 .PP 
-The OPEN group options allow setting flags with the 
+The OPEN group options allow to set flags with the 
 \f(CWopen()\fP
 system call\&. 
 E\&.g\&., option `creat\(cq\& sets the 
@@ -1862,7 +1864,7 @@ Does not make this file the controlling terminal\&.
 .IP "\fB\f(CWnofollow=<bool>\fP\fP"
 Does not follow symbolic links\&.
 .IP "\fB\f(CWnshare=<bool>\fP\fP"
-Does not allow sharing this file with other processes\&.
+Does not allow to share this file with other processes\&.
 .IP "\fB\f(CWrshare=<bool>\fP\fP"
 Does not allow other processes to open this file for writing\&.
 .IP "\fB\f(CWrsync=<bool>\fP\fP"
@@ -2016,13 +2018,13 @@ line from being displayed on the screen and from being added to the history\&.
 The prompt is defined as the text that was output to the readline address 
 after the lastest newline character and before an input character was
 typed\&. The pattern is a regular expression, e\&.g\&.
-\(dq\&^[Pp]assword:\&.*$\(dq\& or \(dq\&([Uu]ser:|[Pp]assword:)\(dq\&\&. See regex(7) for details\&.
+\(dq\&^[Pp]assword:\&.*$\(dq\& or \(dq\&([Uu]ser:|[Pp]assword:)\(dq\&\&. See regex\e(7) for details\&.
 (example)
 .IP "\fB\f(CWprompt=<string>\fP\fP"
 Passes the string as prompt to the readline function\&. readline prints this
 prompt when stepping through the history\&. If this string matches a constant
 prompt issued by an interactive program on the other socat address,
-consistent look and feel can be achieved\&.
+consistent look and feel can be archieved\&.
 
 .PP 
 .br 
@@ -2116,6 +2118,8 @@ maximal window size\&.
 .IP "\fB\f(CWrcvlowat=<bytes>\fP\fP"
 Specifies the minimum number of received bytes [int] until
 the socket layer will pass the buffered data to \fBsocat\fP\&. 
+.IP "\fB\f(CWrcvtimeo=<seconds>\fP\fP"
+Sets the receive timeout [timeval]\&. 
 .IP "\fB\f(CWreuseaddr\fP\fP"
 Allows other sockets to bind to an address even if parts of it (e\&.g\&. the
 local port) are already in use by \fBsocat\fP (example)\&. 
@@ -2130,6 +2134,8 @@ Sets the size of the send buffer when the socket is connected to
 .IP "\fB\f(CWsndlowat=<bytes>\fP\fP"
 Specifies the minimum number of bytes in the send buffer until the socket
 layer will send the data to <bytes> [int]\&.
+.IP "\fB\f(CWsndtimeo=<seconds>\fP\fP"
+Sets the send timeout to seconds [timeval]\&.
 .IP "\fB\f(CWpf=<string>\fP\fP"
 Forces the use of the specified IP version or protocol\&. <string> can be
 something like \(dq\&ip4\(dq\& or \(dq\&ip6\(dq\&\&. The resulting value is
@@ -2157,10 +2163,6 @@ or
 calls, to <prototype>
 [int]\&. Address resolution is not affected by this option\&.
 6 means TCP, 17 means UDP\&.
-.IP "\fB\f(CWreuseport\fP\fP"
-Set the 
-\f(CWSO_REUSEPORT\fP
-socket option\&.
 .IP "\fB\f(CWso\-timestamp\fP\fP"
 Sets the SO_TIMESTAMP socket option\&. This enables receiving and logging of
 timestamp ancillary messages\&.
@@ -2173,7 +2175,7 @@ third argument to \f(CWsetsockopt()\fP and tells which socket option is to be
 set\&. For the actual numbers you might have to look up the appropriate include
 files of your system\&. The 4th \f(CWsetsockopt()\fP parameter, \f(CWvalue\fP
 [int], is passed to the function per pointer, and for the
-length parameter sizeof(int) is taken implicitely\&.
+length parameter sizeof\e(int) is taken implicitely\&.
 .IP "\fB\f(CWsetsockopt\-bin=<level>:<optname>:<optval>\fP\fP"
 Like \f(CWsetsockopt\-int\fP, but <optval> must be provided in
 dalan format and specifies an arbitrary sequence of bytes;
@@ -2228,7 +2230,7 @@ ancillary messages containing destination address and interface (Linux)
 (example)\&. 
 .IP "\fB\f(CWip\-recverr\fP\fP"
 Sets the IP_RECVERR socket option\&. This enables receiving and logging of
-ancillary messages containing detailed error information\&.
+ancillary messages containing detailled error information\&.
 .IP "\fB\f(CWip\-recvopts\fP\fP"
 Sets the IP_RECVOPTS socket option\&. This enables receiving and logging of IP
 options ancillary messages (Linux, *BSD)\&.
@@ -2275,7 +2277,7 @@ Sets the TTL used for outgoing multicast traffic\&. Default is 1\&.
 .IP "\fB\f(CWres\-stayopen\fP\fP"
 .IP "\fB\f(CWres\-dnsrch\fP\fP"
 These options set the corresponding resolver (name resolution) option flags\&.
-Append \(dq\&=0\(dq\& to clear a default option\&. See man resolver(5) for more
+Append \(dq\&=0\(dq\& to clear a default option\&. See man resolver\e(5) for more
 information on these options\&. Note: these options are valid only for the
 address they are applied to\&.
 .IP 
@@ -2378,7 +2380,7 @@ Sets the time to wait for an answer of the peer on an established connection
 Sets the time to wait for an answer of the server during the initial connect
 (HP\-UX)\&.
 .IP "\fB\f(CWkeepinit\fP\fP"
-Sets the time to wait for an answer of the server during connect() before
+Sets the time to wait for an answer of the server during connect\e() before
 giving up\&. Value in half seconds, default is 150 (75s) (Tru64)\&.
 .IP "\fB\f(CWpaws\fP\fP"
 Enables the \(dq\&protect against wrapped sequence numbers\(dq\& feature (Tru64)\&.
@@ -2482,8 +2484,8 @@ fall into this group\&.
 .IP "\fB\f(CWrange=<address\-range>\fP\fP"
 After accepting a connection, tests if the peer is within \fIrange\fP\&. For
 IPv4 addresses, address\-range takes the form address/bits, e\&.g\&.
-10\&.0\&.0\&.0/8, or address:mask, e\&.g\&. 10\&.0\&.0\&.0:255\&.0\&.0\&.0 (example); for IPv6, it is [ip6\-address]/bits, e\&.g\&. [::1]/128\&.
-If the client address does not match, \fBsocat\fP refuses the connection attempt, issues a warning, and keeps
+10\&.0\&.0\&.0/8, or address:mask, e\&.g\&. 10\&.0\&.0\&.0:255\&.0\&.0\&.0 (example); for IPv6, it is [ip6\-address/bits], e\&.g\&. [::1/128]\&.
+If the client address does not match, \fBsocat\fP issues a warning and keeps
 listening/receiving\&.
 .IP "\fB\f(CWtcpwrap[=<name>]\fP\fP"
 Uses Wietse Venema\(cq\&s libwrap (tcpd) library to determine
@@ -2529,10 +2531,9 @@ After establishing a connection, handles its channel in a child process and
 keeps the parent process attempting to produce more connections, either by
 listening or by connecting in a loop (example)\&.
 .br 
-OPENSSL\-CONNECT and OPENSSL\-LISTEN differ in when they actually fork off the
-child:
-OPENSSL\-LISTEN forks \fIbefore\fP the SSL handshake, while OPENSSL\-CONNECT
-forks \fIafterwards\fP\&.
+SSL\-CONNECT and SSL\-LISTEN differ in when they actually fork off the child:
+SSL\-LISTEN forks \fIbefore\fP the SSL handshake, while SSL\-CONNECT forks
+\fIafterwards\fP\&.
 RETRY and FOREVER options are not inherited by the child process\&.
 .br 
 On some operating systems (e\&.g\&. FreeBSD) this option does not work for
@@ -2573,8 +2574,8 @@ the child process, while stderr is inherited from the \fBsocat\fP process, and t
 child process uses file descriptors 0 and 1 for communicating with the main
 socat process\&.
 .IP "\fB\f(CWnofork\fP\fP"
-Does not fork a subprocess for executing the program, instead calls execvp()
-or system() directly from the actual socat instance\&. This avoids the
+Does not fork a subprocess for executing the program, instead calls execvp\e()
+or system\e() directly from the actual socat instance\&. This avoids the
 overhead of another process between the program and its peer,
 but introduces a lot of restrictions:
 .IP o 
@@ -2860,8 +2861,6 @@ Uses a cipher suite with \(dq\&high\(dq\& encryption\&.
 Note that the peer must support the selected property, or the negotiation
 will fail\&.
 .IP "\fB\f(CWmethod=<ssl\-method>\fP\fP"
-This option is based on deprecated functions and is only available when
-\fBsocat\fP was build with option \f(CW\-\-with\-openssl\-method\fP\&.
 Sets the protocol version to be used\&. Valid strings (not case sensitive)
 are:  
 .IP "\f(CWSSL2\fP"
@@ -2869,15 +2868,16 @@ Select SSL protocol version 2\&.
 .IP "\f(CWSSL3\fP"
 Select SSL protocol version 3\&.
 .IP "\f(CWSSL23\fP"
-Select the best available SSL or TLS protocol\&.
+Select the best available SSL or TLS protocol\&. This is the default when
+this option is not provided\&.
 .IP "\f(CWTLS1\fP"
 Select TLS protocol version 1\&.
 .IP "\f(CWTLS1\&.1\fP"
 Select TLS protocol version 1\&.1\&.
 .IP "\f(CWTLS1\&.2\fP"
 Select TLS protocol version 1\&.2\&.
-When this option is not provided OpenSSL negotiates the mothod with its
-peer\&.
+.IP "\f(CWDTLS1\fP"
+Select DTLS protocol version 1\&.
 .IP "\fB\f(CWverify=<bool>\fP\fP"
 Controls check of the peer\(cq\&s certificate\&. Default is 1 (true)\&. Disabling
 verify might open your socket for everyone, making the encryption useless!
@@ -2911,9 +2911,9 @@ data, e\&.g\&. /dev/egd\-pool\&.
 .IP "\fB\f(CWpseudo\fP\fP"
 On systems where openssl cannot find an entropy source and where no entropy
 gathering daemon can be utilized, this option activates a mechanism for
-providing pseudo entropy\&. This is achieved by taking the current time in
+providing pseudo entropy\&. This is archieved by taking the current time in
 microseconds for feeding the libc pseudo random number generator with an
-initial value\&. openssl is then feeded with output from random() calls\&.
+initial value\&. openssl is then feeded with output from random\e() calls\&.
 .br 
 NOTE:This mechanism is not sufficient for generation of secure keys!
 .IP "\fB\f(CWcompress\fP\fP"
@@ -2929,7 +2929,7 @@ OPENSSL\-CONNECT address this overrides the
 given hostname or IP target address; with
 OPENSSL\-LISTEN this turns on check of peer
 certificates commonname\&. This option has only meaning when option
-verify is not disabled and the chosen cipher
+verify is not disabled and the choosen cipher
 provides a peer certificate\&.
 .IP "\fB\f(CWfips\fP\fP"
 Enables FIPS mode if compiled in\&. For info about the FIPS encryption
@@ -3187,7 +3187,7 @@ installs a simple TCP port forwarder\&. With
 TCP4\-LISTEN it listens on local port \(dq\&www\(dq\& until a
 connection comes in, accepts it, then connects to the remote host
 (TCP4) and starts data transfer\&. It will not accept
-a second connection\&. 
+a econd connection\&. 
 .IP 
 \.LP
 \.nf
@@ -3256,8 +3256,8 @@ at most 512 data bytes per packet (mss)\&.
 opens an interactive connection via the serial line, e\&.g\&. for talking with a
 modem\&. rawer sets the console\(cq\&s and
 ttyS0\(cq\&s terminal parameters to practicable values, crnl 
-converts to correct newline characters\&. escape allows
-terminating the socat process with character control\-O\&. 
+converts to correct newline characters\&. escape allows to
+terminate the socat process with character control\-O\&. 
 Consider using READLINE instead of the first address\&.
 .IP 
 \.LP
@@ -3367,7 +3367,7 @@ server wishes a client authentication; many Internet servers do not\&.
 .br 
 The first address (\(cq\&\-\(cq\&) can be replaced by almost any other socat address\&.
 .IP 
-.IP "\fB\f(CWsocat OPENSSL\-LISTEN:4443,reuseaddr,pf=ip4,fork,cert=server\&.pem,cafile=client\&.crt PIPE\fP\fP"
+.IP "\fB\f(CWsocat SSL\-LISTEN:4443,reuseaddr,pf=ip4,fork,cert=server\&.pem,cafile=client\&.crt PIPE\fP\fP"
 
 .IP 
 is an OpenSSL server that accepts TCP connections, presents the certificate
@@ -3415,8 +3415,8 @@ connects to an unknown service and prevents being flooded\&.
 merges data arriving from different TCP streams on port 8888 to just one stream
 to target:9999\&. The end\-close option prevents the child
 processes forked off by the second address from terminating the shared
-connection to 9999 (close(2) just unlinks the inode which stays active as long
-as the parent process lives; shutdown(2) would actively terminate the
+connection to 9999 (close\e(2) just unlinks the inode which stays active as long
+as the parent process lives; shutdown\e(2) would actively terminate the
 connection)\&.
 .IP 
 .IP "\fB\f(CWsocat \- UDP4\-DATAGRAM:192\&.168\&.1\&.0:123,sp=123,broadcast,range=192\&.168\&.1\&.0/24\fP\fP"
@@ -3436,7 +3436,7 @@ specified in generic form\&. the value 6 of setsockopt\-int is the Linux value f
 .IP "\fB\f(CWsocat \- IP4\-DATAGRAM:255\&.255\&.255\&.255:44,broadcast,range=10\&.0\&.0\&.0/8\fP\fP"
 
 .IP 
-sends a broadcast to the local network(s) using protocol 44\&. Accepts replies
+sends a broadcast to the local network\e(s) using protocol 44\&. Accepts replies
 from the private address range only\&.
 .IP 
 .IP "\fB\f(CWsocat \- UDP4\-DATAGRAM:224\&.255\&.0\&.1:6666,bind=:6666,ip\-add\-membership=224\&.255\&.0\&.1:eth0\fP\fP"
@@ -3491,7 +3491,7 @@ unicast, multicast, or broadcast address\&.
 .SH "DIAGNOSTICS"
 
 .PP 
-\fBSocat\fP uses a logging mechanism that allows filtering messages by severity\&. The
+\fBSocat\fP uses a logging mechanism that allows to filter messages by severity\&. The
 severities provided are more or less compatible to the appropriate syslog
 priority\&. With one or up to four occurrences of the \-d command line option, the
 lowest priority of messages that are issued can be selected\&. Each message
@@ -3510,7 +3510,7 @@ correct further processing cannot be guaranteed, but might be possible\&.
 Interesting actions of the program, e\&.g\&. for supervising \fBsocat\fP in some kind of server mode\&.
 .IP "INFO:"
 Description of what the program does, and maybe why it
-happens\&. Allows monitoring the lifecycles of file descriptors\&.
+happens\&. Allows to monitor the lifecycles of file descriptors\&.
 .IP "DEBUG:"
 Description of how the program works, all system or library calls and their results\&.
 
@@ -3557,7 +3557,7 @@ the first record and its IP version\&.
 .IP 
 .IP "\fBSOCAT_FORK_WAIT\fP (input)"
 Specifies the time (seconds) to sleep the
-parent and child processes after successful fork()\&. Useful for debugging\&.
+parent and child processes after successful fork\e()\&. Useful for debugging\&.
 .IP 
 .IP "\fBSOCAT_VERSION\fP (output)"
 Socat sets this variable to its version string,
@@ -3648,7 +3648,7 @@ packet\&.
 .IP "\fBSOCAT_IPV6_TCLASS\fP (output)"
 With all IPv6 based RECVFROM addresses
 where address option ipv6\-recvtclass is applied,
-\fBsocat\fP sets this variable to the transfer class of the received packet\&.
+socat sets this variable to the transfer class of the received packet\&.
 .IP 
 .IP "\fBSOCAT_OPENSSL_X509_ISSUER\fP (output)"
 Issuer field from peer certificate
@@ -3737,12 +3737,12 @@ Send bug reports to <socat@dest\-unreach\&.org>
 .SH "SEE ALSO"
 
 .PP 
-nc(1), rinetd(8), openssl(1),
-stunnel(8), rlwrap(1), setsid(1)
+nc\e(1), netcat6\e(1), sock\e(1), rinetd\e(8), cage\e(1), socks\&.conf\e(5), openssl\e(1),
+stunnel\e(8), pty\e(1), rlwrap\e(1), setsid\e(1)
 .PP 
 \fBSocat\fP home page http://www\&.dest\-unreach\&.org/socat/
 .PP 
 .SH "AUTHOR"
 
 .PP 
-Gerhard Rieger <rieger@dest\-unreach\&.org> and contributors
+Gerhard Rieger <rieger@dest\-unreach\&.org>

@@ -1,5 +1,5 @@
 /* source: error.c */
-/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* the logging subsystem */
@@ -14,8 +14,8 @@
 #include "snprinterr.h"
 
 #include "error.h"
+#include "sysincludes.h"
 #include "sycls.h"
-
 
 /* translate MSG level to SYSLOG level */
 int syslevel[] = {
@@ -110,9 +110,15 @@ static int diag_sock_recv = -1;
 static int diag_msg_avail = 0;	/* !=0: messages from within signal handler may be waiting */
 
 
-static int diag_sock_pair(void) {
+static int diag_init(void) {
    int handlersocks[2];
 
+   if (diaginitialized) {
+      return 0;
+   }
+   diaginitialized = 1;
+   /* gcc with GNU libc refuses to set this in the initializer */
+   diagopts.logfile = stderr;
    if (socketpair(AF_UNIX, SOCK_DGRAM, 0, handlersocks) < 0) {
       diag_sock_send = -1;
       diag_sock_recv = -1;
@@ -120,19 +126,6 @@ static int diag_sock_pair(void) {
    }
    diag_sock_send = handlersocks[1];
    diag_sock_recv = handlersocks[0];
-   return 0;
-}
-
-static int diag_init(void) {
-   if (diaginitialized) {
-      return 0;
-   }
-   diaginitialized = 1;
-   /* gcc with GNU libc refuses to set this in the initializer */
-   diagopts.logfile = stderr;
-   if (diag_sock_pair() < 0) {
-      return -1;
-   }
    return 0;
 }
 #define DIAG_INIT ((void)(diaginitialized || diag_init()))
@@ -217,27 +210,6 @@ const char *diag_get_string(char what) {
    return NULL;
 }
 
-/* make sure that the diag_sock fds do not have this num */
-int diag_reserve_fd(int fd) {
-   DIAG_INIT;
-   if (diag_sock_send == fd) {
-      diag_sock_send = Dup(fd);
-      Close(fd);
-   }
-   if (diag_sock_recv == fd) {
-      diag_sock_recv = Dup(fd);
-      Close(fd);
-   }
-   return 0;
-}
-
-/* call this after a fork() from the child process to separate master/parent
-   sockets from child sockets */
-int diag_fork() {
-   Close(diag_sock_send);
-   Close(diag_sock_recv);
-   return diag_sock_pair();
-}
 
 /* Linux and AIX syslog format:
 Oct  4 17:10:37 hostname socat[52798]: D signal(13, 1)
@@ -260,7 +232,7 @@ void msg(int level, const char *format, ...) {
       diag_flush();
    }
 
-   if (level < diagopts.msglevel)  { return; }
+   if (level < diagopts.msglevel)  { va_end(ap); return; }
    va_start(ap, format);
 
    /* we do only a minimum in the outer parts which may run in a signal handler

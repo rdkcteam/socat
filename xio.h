@@ -1,5 +1,5 @@
 /* source: xio.h */
-/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 #ifndef __xio_h_included
@@ -26,7 +26,7 @@ struct opt;
 #define XIO_RDONLY  O_RDONLY /* asserted to be 0 */
 #define XIO_WRONLY  O_WRONLY /* asserted to be 1 */
 #define XIO_RDWR    O_RDWR   /* asserted to be 2 */
-#define XIO_ACCMODE (XIO_RDONLY|XIO_WRONLY|XIO_RDWR)	/* must be 3 */
+#define XIO_ACCMODE O_ACCMODE	/* must be 3 */
 #define XIO_MAYFORK     4 /* address is allowed to fork the program (fork) */
 #define XIO_MAYCHILD    8 /* address is allowed to fork off a child (exec)*/
 #define XIO_MAYEXEC    16 /* address is allowed to exec a prog (exec+nofork) */
@@ -129,8 +129,7 @@ typedef struct single {
    bool   ignoreeof;	/* option ignoreeof; do not pass eof condition to app*/
    int    eof;		/* 1..exec'd child has died, but no explicit eof
 			   occurred 
-			   2..fd0 has reached EOF, but check for ignoreeof
-			   3..fd0 has reached EOF (definitely; never with
+			   2..fd0 has reached EOF (definitely; never with
 			   ignoreeof! */
    size_t wsize;	/* write always this size; 0..all available */
    size_t readbytes;	/* read only so many bytes; 0...unlimited */
@@ -305,7 +304,7 @@ struct addrdesc {
 typedef unsigned long flags_t;
 
 union integral {
-   bool           u_bool;
+   int            u_bool;
    uint8_t        u_byte;
    gid_t          u_gidt;
    int	          u_int;

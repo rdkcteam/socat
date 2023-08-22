@@ -1,5 +1,5 @@
 /* source: xio-openssl.c */
-/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the implementation of the openssl addresses */
@@ -101,9 +101,7 @@ const struct addrdesc addr_openssl_listen = {
 
 /* both client and server */
 const struct optdesc opt_openssl_cipherlist = { "openssl-cipherlist", "ciphers", OPT_OPENSSL_CIPHERLIST, GROUP_OPENSSL, PH_SPEC, TYPE_STRING, OFUNC_SPEC };
-#if WITH_OPENSSL_METHOD
 const struct optdesc opt_openssl_method     = { "openssl-method",     "method",  OPT_OPENSSL_METHOD,     GROUP_OPENSSL, PH_SPEC, TYPE_STRING, OFUNC_SPEC };
-#endif
 const struct optdesc opt_openssl_verify     = { "openssl-verify",     "verify",  OPT_OPENSSL_VERIFY,     GROUP_OPENSSL, PH_SPEC, TYPE_BOOL,   OFUNC_SPEC };
 const struct optdesc opt_openssl_certificate = { "openssl-certificate", "cert",  OPT_OPENSSL_CERTIFICATE, GROUP_OPENSSL, PH_SPEC, TYPE_FILENAME, OFUNC_SPEC };
 const struct optdesc opt_openssl_key         = { "openssl-key",         "key",   OPT_OPENSSL_KEY,         GROUP_OPENSSL, PH_SPEC, TYPE_FILENAME, OFUNC_SPEC };
@@ -112,7 +110,7 @@ const struct optdesc opt_openssl_cafile      = { "openssl-cafile",     "cafile",
 const struct optdesc opt_openssl_capath      = { "openssl-capath",     "capath", OPT_OPENSSL_CAPATH,      GROUP_OPENSSL, PH_SPEC, TYPE_FILENAME, OFUNC_SPEC };
 const struct optdesc opt_openssl_egd         = { "openssl-egd",        "egd",    OPT_OPENSSL_EGD,         GROUP_OPENSSL, PH_SPEC, TYPE_FILENAME, OFUNC_SPEC };
 const struct optdesc opt_openssl_pseudo      = { "openssl-pseudo",     "pseudo", OPT_OPENSSL_PSEUDO,      GROUP_OPENSSL, PH_SPEC, TYPE_BOOL,     OFUNC_SPEC };
-#if OPENSSL_VERSION_NUMBER >= 0x00908000L && !defined(OPENSSL_NO_COMP)
+#if OPENSSL_VERSION_NUMBER >= 0x00908000L
 const struct optdesc opt_openssl_compress    = { "openssl-compress",   "compress", OPT_OPENSSL_COMPRESS,  GROUP_OPENSSL, PH_SPEC, TYPE_STRING,   OFUNC_SPEC };
 #endif
 #if WITH_FIPS
@@ -149,7 +147,7 @@ int xio_reset_fips_mode(void) {
 static void openssl_conn_loginfo(SSL *ssl) {
    Notice1("SSL connection using %s", SSL_get_cipher(ssl));
 
-#if OPENSSL_VERSION_NUMBER >= 0x00908000L && !defined(OPENSSL_NO_COMP)
+#if OPENSSL_VERSION_NUMBER >= 0x00908000L
    {
       const COMP_METHOD *comp, *expansion;
 
@@ -808,9 +806,7 @@ int
 	    Error1("openssl-method=\"%s\": method unknown or not provided by library", me_str);
 	 }
       } else {
-#if   HAVE_TLS_client_method
-	 method = TLS_client_method();
-#elif HAVE_SSLv23_client_method
+#if   HAVE_SSLv23_client_method
 	 method = sycSSLv23_client_method();
 #elif HAVE_TLSv1_2_client_method
 	 method = sycTLSv1_2_client_method();
@@ -830,6 +826,7 @@ int
       if (me_str != 0) {
 	 if (false) {
 	    ;	/* for canonical reasons */
+
 #if HAVE_SSLv2_server_method
 	 } else if (!strcasecmp(me_str, "SSL2")) {
 	    method = sycSSLv2_server_method();
@@ -862,9 +859,7 @@ int
 	    Error1("openssl-method=\"%s\": method unknown or not provided by library", me_str);
 	 }
       } else {
-#if   HAVE_TLS_server_method
-	 method = TLS_server_method();
-#elif HAVE_SSLv23_server_method
+#if   HAVE_SSLv23_server_method
 	 method = sycSSLv23_server_method();
 #elif HAVE_TLSv1_2_server_method
 	 method = sycTLSv1_2_server_method();
@@ -883,11 +878,7 @@ int
    }
 
    if (opt_egd) {
-#if !defined(OPENSSL_NO_EGD) && HAVE_RAND_egd
       sycRAND_egd(opt_egd);
-#else
-      Debug("RAND_egd() is not available by OpenSSL");
-#endif
    }
 
    if (opt_pseudo) {
@@ -945,51 +936,38 @@ int
 	 0x02,
       };
       DH *dh;
-      BIGNUM *p = NULL, *g = NULL;
       unsigned long err;
 
-      dh = DH_new();
-      p = BN_bin2bn(dh2048_p, sizeof(dh2048_p), NULL);
-      g = BN_bin2bn(dh2048_g, sizeof(dh2048_g), NULL);
-      if (!dh || !p || !g) {
-         if (dh)
-            DH_free(dh);
-         if (p)
-            BN_free(p);
-         if (g)
-            BN_free(g);
-         while (err = ERR_get_error()) {
-            Warn1("dh2048 setup(): %s",
-                  ERR_error_string(err, NULL));
-         }
-         Error("dh2048 setup failed");
-         goto cont_out;
+      if ((dh = DH_new()) == NULL) {
+	 while (err = ERR_get_error()) {
+	    Warn1("DH_new(): %s",
+		   ERR_error_string(err, NULL));
+	 }
+	 Error("DH_new() failed");
+      } else {
+	 dh->p = BN_bin2bn(dh2048_p, sizeof(dh2048_p), NULL);
+	 dh->g = BN_bin2bn(dh2048_g, sizeof(dh2048_g), NULL);
+	 if ((dh->p == NULL) || (dh->g == NULL)) {
+	    while (err = ERR_get_error()) {
+	       Warn1("BN_bin2bn(): %s",
+		     ERR_error_string(err, NULL));
+	    }
+	    Error("BN_bin2bn() failed");
+	 } else {
+	    if (sycSSL_CTX_set_tmp_dh(*ctx, dh) <= 0) {
+	       while (err = ERR_get_error()) {
+		  Warn3("SSL_CTX_set_tmp_dh(%p, %p): %s", *ctx, dh,
+			ERR_error_string(err, NULL));
+	       }
+	       Error2("SSL_CTX_set_tmp_dh(%p, %p) failed", *ctx, dh);
+	    }
+	    /*! OPENSSL_free(dh->p,g)? doc does not tell so */
+	 }
+	 DH_free(dh);
       }
-#if HAVE_DH_set0_pqg
-      if (!DH_set0_pqg(dh, p, NULL, g)) {
-	      DH_free(dh);
-	      BN_free(p);
-	      BN_free(g);
-	      goto cont_out;
-      }
-#else
-      dh->p = p;
-      dh->g = g;
-#endif /* HAVE_DH_set0_pqg */
-      if (sycSSL_CTX_set_tmp_dh(*ctx, dh) <= 0) {
-         while (err = ERR_get_error()) {
-            Warn3("SSL_CTX_set_tmp_dh(%p, %p): %s", *ctx, dh,
-                  ERR_error_string(err, NULL));
-         }
-         Error2("SSL_CTX_set_tmp_dh(%p, %p) failed", *ctx, dh);
-      }
-      /* p & g are freed by DH_free() once attached */
-      DH_free(dh);
-cont_out:
-      ;
    }
 
-#if HAVE_TYPE_EC_KEY	/* not on Openindiana 5.11 */
+#if defined(EC_KEY)	/* not on Openindiana 5.11 */
    {
       /* see http://openssl.6102.n7.nabble.com/Problem-with-cipher-suite-ECDHE-ECDSA-AES256-SHA384-td42229.html */
       int	 nid;
@@ -1011,7 +989,7 @@ cont_out:
 
       SSL_CTX_set_tmp_ecdh(*ctx, ecdh);
    }
-#endif /* HAVE_TYPE_EC_KEY */
+#endif /* !defined(EC_KEY) */
 
 #if OPENSSL_VERSION_NUMBER >= 0x00908000L
    if (opt_compress) {
@@ -1022,20 +1000,6 @@ cont_out:
       }
    }
 #endif
-
-#if defined(HAVE_SSL_CTX_clear_mode) || defined(SSL_CTX_clear_mode)
-   /* It seems that OpenSSL-1.1.1 presets the mode differently.
-      Without correction socat might hang in SSL_read() */
-   {
-      long mode = 0;
-      mode = SSL_CTX_get_mode(*ctx);
-      if (mode & SSL_MODE_AUTO_RETRY) {
-	 Info("SSL_CTX mode has SSL_MODE_AUTO_RETRY set. Correcting..");
-	 Debug1("SSL_CTX_clean_mode(%p, SSL_MODE_AUTO_RETRY)", *ctx);
-	 SSL_CTX_clear_mode(*ctx, SSL_MODE_AUTO_RETRY);
-      }
-   }
-#endif /* defined(HAVE_SSL_CTX_clear_mode) || defined(SSL_CTX_clear_mode) */
 
    if (opt_cafile != NULL || opt_capath != NULL) {
       if (sycSSL_CTX_load_verify_locations(*ctx, opt_cafile, opt_capath) != 1) {
@@ -1099,7 +1063,7 @@ cont_out:
       }
    }
 
-   /* set pre openssl-connect options */
+   /* set pre ssl-connect options */
    /* SSL_CIPHERS */
    if (ci_str != NULL) {
       if (sycSSL_CTX_set_cipher_list(*ctx, ci_str) <= 0) {
@@ -1138,23 +1102,9 @@ static int openssl_SSL_ERROR_SSL(int level, const char *funcname) {
 
    while (e = ERR_get_error()) {
       Debug1("ERR_get_error(): %lx", e);
-      if
-	 (
-#if defined(OPENSSL_IS_BORINGSSL)
-	  0  /* BoringSSL's RNG always succeeds. */
-#elif defined(HAVE_RAND_status)
-	  ERR_GET_LIB(e) == ERR_LIB_RAND && RAND_status() != 1
-#else
-	  e == ((ERR_LIB_RAND<<24)|
-#if defined(RAND_F_RAND_BYTES)
-		(RAND_F_RAND_BYTES<<12)|
-#else
+      if (e == ((ERR_LIB_RAND<<24)|
 		(RAND_F_SSLEAY_RAND_BYTES<<12)|
-#endif
-		(RAND_R_PRNG_NOT_SEEDED)) /*0x24064064*/
-#endif
-	  )
-      {
+		(RAND_R_PRNG_NOT_SEEDED)) /*0x24064064*/) {
 	 Error("too few entropy; use options \"egd\" or \"pseudo\"");
 	 stat = STAT_NORETRY;
       } else {
@@ -1286,17 +1236,13 @@ static int openssl_setenv_cert_fields(const char *field, X509_NAME *name) {
       X509_NAME_ENTRY *entry;
       ASN1_OBJECT *obj;
       ASN1_STRING *data;
-      const unsigned char *text;
+      unsigned char *text;
       int nid;
       entry = X509_NAME_get_entry(name, i);
       obj  = X509_NAME_ENTRY_get_object(entry);
       data = X509_NAME_ENTRY_get_data(entry);
       nid  = OBJ_obj2nid(obj);
-#if HAVE_ASN1_STRING_get0_data
-      text = ASN1_STRING_get0_data(data);
-#else
       text = ASN1_STRING_data(data);
-#endif
       Debug3("SSL peer cert %s entry: %s=\"%s\"", (field[0]?field:"subject"), OBJ_nid2ln(nid), text);
       if (field != NULL && field[0] != '\0') {
          xiosetenv3("OPENSSL_X509", field, OBJ_nid2ln(nid), (const char *)text, 2, " // ");
@@ -1360,7 +1306,7 @@ static bool openssl_check_peername(X509_NAME *name, const char *peername) {
    int ind = -1;
    X509_NAME_ENTRY *entry;
    ASN1_STRING *data;
-   const unsigned char *text;
+   unsigned char *text;
    ind = X509_NAME_get_index_by_NID(name, NID_commonName, -1);
    if (ind < 0) {
       Info("no COMMONNAME field in peer certificate");	
@@ -1368,11 +1314,7 @@ static bool openssl_check_peername(X509_NAME *name, const char *peername) {
    }
    entry = X509_NAME_get_entry(name, ind);
    data = X509_NAME_ENTRY_get_data(entry);
-#if HAVE_ASN1_STRING_get0_data
-   text = ASN1_STRING_get0_data(data);
-#else
    text = ASN1_STRING_data(data);
-#endif
    return openssl_check_name((const char *)text, peername);
 }
 

@@ -1,5 +1,5 @@
 /* source: xio-termios.c */
-/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for terminal I/O options */
@@ -14,7 +14,6 @@
 #if WITH_TERMIOS
 const struct optdesc opt_tiocsctty={ "tiocsctty", "ctty",OPT_TIOCSCTTY,  GROUP_TERMIOS,   PH_LATE2, TYPE_BOOL,     OFUNC_SPEC };
 
-/* it is important for handling of these options that they have PH_FD */
 const struct optdesc opt_brkint  = { "brkint",  NULL, OPT_BRKINT,  GROUP_TERMIOS, PH_FD, TYPE_BOOL, OFUNC_TERMIOS_FLAG, 0, BRKINT };
 const struct optdesc opt_icrnl   = { "icrnl",   NULL, OPT_ICRNL,   GROUP_TERMIOS, PH_FD, TYPE_BOOL, OFUNC_TERMIOS_FLAG, 0, ICRNL };
 const struct optdesc opt_ignbrk  = { "ignbrk",  NULL, OPT_IGNBRK,  GROUP_TERMIOS, PH_FD, TYPE_BOOL, OFUNC_TERMIOS_FLAG, 0, IGNBRK };
@@ -80,19 +79,19 @@ const struct optdesc opt_onocr   = { "onocr",   NULL, OPT_ONOCR,   GROUP_TERMIOS
 #endif
 #ifdef TABDLY
 #  ifdef TAB0
-const struct optdesc opt_tab0    = { "tab0",    NULL, OPT_TAB0,    GROUP_TERMIOS, PH_FD, TYPE_CONST, OFUNC_TERMIOS_PATTERN, 1, TAB0, TABDLY };
+const struct optdesc opt_tab0    = { "tab0",    NULL, OPT_TAB0,    GROUP_TERMIOS, PH_FD, TYPE_CONST, OFUNC_TERMIOS_FLAG, 1, TAB0, TABDLY };
 #  endif
 #  ifdef TAB1
-const struct optdesc opt_tab1    = { "tab1",    NULL, OPT_TAB1,    GROUP_TERMIOS, PH_FD, TYPE_CONST, OFUNC_TERMIOS_PATTERN, 1, TAB1, TABDLY };
+const struct optdesc opt_tab1    = { "tab1",    NULL, OPT_TAB1,    GROUP_TERMIOS, PH_FD, TYPE_CONST, OFUNC_TERMIOS_FLAG, 1, TAB1, TABDLY };
 #  endif
 #  ifdef TAB2
-const struct optdesc opt_tab2    = { "tab2",    NULL, OPT_TAB2,    GROUP_TERMIOS, PH_FD, TYPE_CONST, OFUNC_TERMIOS_PATTERN, 1, TAB2, TABDLY };
+const struct optdesc opt_tab2    = { "tab2",    NULL, OPT_TAB2,    GROUP_TERMIOS, PH_FD, TYPE_CONST, OFUNC_TERMIOS_FLAG, 1, TAB2, TABDLY };
 #  endif
 #  ifdef TAB3
-const struct optdesc opt_tab3    = { "tab3",    NULL, OPT_TAB3,    GROUP_TERMIOS, PH_FD, TYPE_CONST, OFUNC_TERMIOS_PATTERN, 1, TAB3, TABDLY };
+const struct optdesc opt_tab3    = { "tab3",    NULL, OPT_TAB3,    GROUP_TERMIOS, PH_FD, TYPE_CONST, OFUNC_TERMIOS_FLAG, 1, TAB3, TABDLY };
 #  endif
 #  ifdef XTABS
-const struct optdesc opt_xtabs   = { "xtabs",   NULL, OPT_XTABS,   GROUP_TERMIOS, PH_FD, TYPE_CONST, OFUNC_TERMIOS_PATTERN, 1, XTABS, TABDLY };
+const struct optdesc opt_xtabs   = { "xtabs",   NULL, OPT_XTABS,   GROUP_TERMIOS, PH_FD, TYPE_CONST, OFUNC_TERMIOS_FLAG, 1, XTABS, TABDLY };
 #  endif
 #  if TABDLY_SHIFT >= 0
 const struct optdesc opt_tabdly  = { "tabdly",  NULL, OPT_TABDLY,  GROUP_TERMIOS, PH_FD, TYPE_UINT, OFUNC_TERMIOS_VALUE, 1, TABDLY, TABDLY_SHIFT };
@@ -272,12 +271,14 @@ const struct optdesc opt_sane     = { "sane",   NULL,    OPT_SANE,     GROUP_TER
 const struct optdesc opt_termios_cfmakeraw = { "termios-cfmakeraw", "cfmakeraw", OPT_TERMIOS_CFMAKERAW, GROUP_TERMIOS, PH_FD, TYPE_CONST, OFUNC_TERMIOS_SPEC };
 const struct optdesc opt_termios_rawer     = { "termios-rawer",     "rawer",     OPT_TERMIOS_RAWER,     GROUP_TERMIOS, PH_FD, TYPE_CONST, OFUNC_TERMIOS_SPEC };
 
-#if HAVE_TERMIOS_ISPEED
-const struct optdesc opt_ispeed = { "ispeed", NULL, OPT_ISPEED, GROUP_TERMIOS, PH_FD, TYPE_UINT, OFUNC_TERMIOS_SPEED, 0/*in*/ };
+#ifdef HAVE_TERMIOS_ISPEED
+#if defined(ISPEED_OFFSET) && (ISPEED_OFFSET != -1)
+#if defined(OSPEED_OFFSET) && (OSPEED_OFFSET != -1)
+const struct optdesc opt_ispeed = { "ispeed", NULL, OPT_ISPEED, GROUP_TERMIOS, PH_FD, TYPE_UINT, OFUNC_TERMIOS_SPEED, ISPEED_OFFSET };
+const struct optdesc opt_ospeed = { "ospeed", NULL, OPT_OSPEED, GROUP_TERMIOS, PH_FD, TYPE_UINT, OFUNC_TERMIOS_SPEED, OSPEED_OFFSET };
 #endif
-#if HAVE_TERMIOS_OSPEED
-const struct optdesc opt_ospeed = { "ospeed", NULL, OPT_OSPEED, GROUP_TERMIOS, PH_FD, TYPE_UINT, OFUNC_TERMIOS_SPEED, 1/*out*/ };
 #endif
+#endif /* HAVE_TERMIOS_ISPEED */
 
 
 int xiotermiosflag_applyopt(int fd, struct opt *opt) {
@@ -296,236 +297,42 @@ int xiotermiosflag_applyopt(int fd, struct opt *opt) {
 
 #endif /* WITH_TERMIOS */
 
-bool _xiotermios_doit = false;	/* _data has been retrieved and manipulated, set it later */
-union {
-   struct termios termarg;
-   tcflag_t flags[4];
-} _xiotermios_data;
-
 int xiotermios_setflag(int fd, int word, tcflag_t mask) {
-   if (!_xiotermios_doit) {
-      if (Tcgetattr(fd, &_xiotermios_data.termarg) < 0) {
-	 Error3("tcgetattr(%d, %p): %s",
-		fd, &_xiotermios_data.termarg, strerror(errno));
-	 return -1;
-      }
-      _xiotermios_doit = true;
-   }
-   _xiotermios_data.flags[word] |= mask;
-   return 0;
-}
+   union {
+      struct termios termarg;
+      tcflag_t flags[4];
+   } tdata;
 
-int xiotermios_clrflag(int fd, int word, tcflag_t mask) {
-   if (!_xiotermios_doit) {
-      if (Tcgetattr(fd, &_xiotermios_data.termarg) < 0) {
-	 Error3("tcgetattr(%d, %p): %s",
-		fd, &_xiotermios_data.termarg, strerror(errno));
-	 return -1;
-      }
-      _xiotermios_doit = true;
+   if (Tcgetattr(fd, &tdata.termarg) < 0) {
+      Error3("tcgetattr(%d, %p): %s",
+	     fd, &tdata.termarg, strerror(errno));
+      return -1;
    }
-   _xiotermios_data.flags[word] &= ~mask;
-   return 0;
-}
-
-int xiotermios_value(int fd, int word, tcflag_t mask, tcflag_t value) {
-   if (!_xiotermios_doit) {
-      if (Tcgetattr(fd, &_xiotermios_data.termarg) < 0) {
-	 Error3("tcgetattr(%d, %p): %s",
-		fd, &_xiotermios_data.termarg, strerror(errno));
-	 return -1;
-      }
-      _xiotermios_doit = true;
-   }
-   _xiotermios_data.flags[word] &= ~mask;
-   _xiotermios_data.flags[word] |= value;
-   return 0;
-}
-
-int xiotermios_char(int fd, int n, unsigned char c) {
-   if (!_xiotermios_doit) {
-      if (Tcgetattr(fd, &_xiotermios_data.termarg) < 0) {
-	 Error3("tcgetattr(%d, %p): %s",
-		fd, &_xiotermios_data.termarg, strerror(errno));
-	 return -1;
-      }
-      _xiotermios_doit = true;
-   }
-   _xiotermios_data.termarg.c_cc[n] = c;
-   return 0;
-}
-
-#if HAVE_TERMIOS_ISPEED || HAVE_TERMIOS_OSPEED
-int xiotermios_speed(int fd, int n, speed_t speed) {
-   if (!_xiotermios_doit) {
-      if (Tcgetattr(fd, &_xiotermios_data.termarg) < 0) {
-	 Error3("tcgetattr(%d, %p): %s",
-		fd, &_xiotermios_data.termarg, strerror(errno));
-	 return -1;
-      }
-      _xiotermios_doit = true;
-   }
-   if (n == 0) {
-      if (cfsetispeed(&_xiotermios_data.termarg, speed) < 0) {
-	 Error3("cfsetispeed(%p, "F_speed"): %s",
-	       &_xiotermios_data.termarg, speed, strerror(errno));
-      }
-   } else {
-      if (cfsetospeed(&_xiotermios_data.termarg, speed) < 0) {
-	 Error3("cfsetospeed(%p, "F_speed"): %s",
-	       &_xiotermios_data.termarg, speed, strerror(errno));
-      }
-   }
-// Tcgetattr(fd, &_xiotermios_data.termarg);
-   return 0;
-}
-#endif /* HAVE_TERMIOS_ISPEED */
-
-/* those termios parameters that are undefined (system dependent) we define
-   to a neutral form so we may use them in the complex patterns */
-
-#ifndef BS0
-#  define BS0 0
-#endif
-#ifndef BSDLY
-#  define BSDLY 0
-#endif
-#ifndef CR0
-#  define CR0 0
-#endif
-#ifndef CRDLY
-#  define CRDLY 0
-#endif
-#ifndef ECHOPRT
-#  define ECHOPRT 0
-#endif
-#ifndef FF0
-#  define FF0 0
-#endif
-#ifndef FFDLY
-#  define FFDLY 0
-#endif
-#ifndef IUCLC
-#  define IUCLC 0
-#endif
-#ifndef NL0
-#  define NL0 0
-#endif
-#ifndef NLDLY
-#  define NLDLY 0
-#endif
-#ifndef OCRNL
-#  define OCRNL 0
-#endif
-#ifndef OFDEL
-#  define OFDEL 0
-#endif
-#ifndef OFILL
-#  define OFILL 0
-#endif
-#ifndef OLCUC
-#  define OLCUC 0
-#endif
-#ifndef ONLRET
-#  define ONLRET 0
-#endif
-#ifndef ONOCR
-#  define ONOCR 0
-#endif
-#ifndef TAB0
-#  define TAB0 0
-#endif
-#ifndef TABDLY
-#  define TABDLY 0
-#endif
-#ifndef VT0
-#  define VT0 0
-#endif
-#ifndef VTDLY
-#  define VTDLY 0
-#endif
-#ifndef XCASE
-#  define XCASE 0
-#endif
-
-int xiotermios_spec(int fd, int optcode) {
-   if (!_xiotermios_doit) {
-      if (Tcgetattr(fd, &_xiotermios_data.termarg) < 0) {
-	 Error3("tcgetattr(%d, %p): %s",
-		fd, &_xiotermios_data.termarg, strerror(errno));
-	 return -1;
-      }
-      _xiotermios_doit = true;
-   }
-   switch (optcode) {
-   case OPT_RAW:
-      _xiotermios_data.termarg.c_iflag &=
-	 ~(IGNBRK|BRKINT|IGNPAR|PARMRK|INPCK|ISTRIP|INLCR|IGNCR|ICRNL|IXON|IXOFF|IUCLC|IXANY|IMAXBEL);
-      _xiotermios_data.termarg.c_iflag |= (0);
-      _xiotermios_data.termarg.c_oflag &= ~(OPOST);
-      _xiotermios_data.termarg.c_oflag |= (0);
-      _xiotermios_data.termarg.c_cflag &= ~(0);
-      _xiotermios_data.termarg.c_cflag |= (0);
-      _xiotermios_data.termarg.c_lflag &= ~(ISIG|ICANON|XCASE);
-      _xiotermios_data.termarg.c_lflag |= (0);
-      _xiotermios_data.termarg.c_cc[VMIN] = 1;
-      _xiotermios_data.termarg.c_cc[VTIME] = 0;
-      break;
-   case OPT_TERMIOS_RAWER:
-      _xiotermios_data.termarg.c_iflag = 0;
-      _xiotermios_data.termarg.c_oflag = 0;
-      _xiotermios_data.termarg.c_lflag = 0;
-      _xiotermios_data.termarg.c_cflag = (CS8);
-      _xiotermios_data.termarg.c_cc[VMIN] = 1;
-      _xiotermios_data.termarg.c_cc[VTIME] = 0;
-      break;
-   case OPT_SANE:
-      /* cread -ignbrk brkint  -inlcr  -igncr  icrnl
-	 -ixoff  -iuclc  -ixany  imaxbel opost -olcuc -ocrnl
-	 onlcr -onocr -onlret -ofill -ofdel nl0 cr0 tab0 bs0
-	 vt0 ff0 isig icanon iexten echo echoe echok -echonl
-	 -noflsh -xcase -tostop -echoprt echoctl echoke, and
-	 also  sets  all special characters to their default
-	 values.
-      */
-      _xiotermios_data.termarg.c_iflag &= ~(IGNBRK|INLCR|IGNCR|IXOFF|IUCLC|IXANY);
-      _xiotermios_data.termarg.c_iflag |= (BRKINT|ICRNL|IMAXBEL);
-      _xiotermios_data.termarg.c_oflag &= ~(OLCUC|OCRNL|ONOCR|ONLRET|OFILL|OFDEL|NLDLY|CRDLY|TABDLY|BSDLY|VTDLY|FFDLY);
-      _xiotermios_data.termarg.c_oflag |= (OPOST|ONLCR|NL0|CR0|TAB0|BS0|VT0|FF0);
-      _xiotermios_data.termarg.c_cflag &= ~(0);
-      _xiotermios_data.termarg.c_cflag |= (CREAD);
-      _xiotermios_data.termarg.c_lflag &= ~(ECHONL|NOFLSH|XCASE|TOSTOP|ECHOPRT);
-      _xiotermios_data.termarg.c_lflag |= (ISIG|ICANON|IEXTEN|ECHO|ECHOE|ECHOK|ECHOCTL|ECHOKE);
-      /*! "sets characters to their default values... - which? */
-      break;
-   case OPT_TERMIOS_CFMAKERAW:
-#if HAVE_CFMAKERAW
-      cfmakeraw(&_xiotermios_data.termarg);
-#else
-      /* these setting follow the Linux documenation of cfmakeraw */
-      _xiotermios_data.termarg.c_iflag &=
-	 ~(IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL|IXON);
-      _xiotermios_data.termarg.c_oflag &= ~(OPOST);
-      _xiotermios_data.termarg.c_lflag &= ~(ECHO|ECHONL|ICANON|ISIG|IEXTEN);
-      _xiotermios_data.termarg.c_cflag &= ~(CSIZE|PARENB);
-      _xiotermios_data.termarg.c_cflag |= (CS8);
-#endif
-      break;
-   default:
-      Error("TERMIOS option not handled - internal error?");
+   tdata.flags[word] |= mask;
+   if (Tcsetattr(fd, TCSADRAIN, &tdata.termarg) < 0) {
+      Error3("tcsetattr(%d, TCSADRAIN, %p): %s",
+	     fd, &tdata.termarg, strerror(errno));
       return -1;
    }
    return 0;
 }
 
-int xiotermios_flush(int fd) {
-   if (_xiotermios_doit) {
-      if (Tcsetattr(fd, TCSADRAIN, &_xiotermios_data.termarg) < 0) {
-	 Error3("tcsetattr(%d, TCSADRAIN, %p): %s",
-		fd, &_xiotermios_data.termarg, strerror(errno));
-	 return -1;
-      }
-      _xiotermios_doit = false;
+int xiotermios_clrflag(int fd, int word, tcflag_t mask) {
+   union {
+      struct termios termarg;
+      tcflag_t flags[4];
+   } tdata;
+
+   if (Tcgetattr(fd, &tdata.termarg) < 0) {
+      Error3("tcgetattr(%d, %p): %s",
+	     fd, &tdata.termarg, strerror(errno));
+      return -1;
+   }
+   tdata.flags[word] &= ~mask;
+   if (Tcsetattr(fd, TCSADRAIN, &tdata.termarg) < 0) {
+      Error3("tcsetattr(%d, TCSADRAIN, %p): %s",
+	     fd, &tdata.termarg, strerror(errno));
+      return -1;
    }
    return 0;
 }

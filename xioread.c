@@ -1,5 +1,5 @@
 /* source: xioread.c */
-/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
+/* Copyright Gerhard Rieger 2001-2010 */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this is the source of the extended read function */
@@ -221,12 +221,9 @@ ssize_t xioread(xiofile_t *file, void *buff, size_t bufsiz) {
       }
 
       switch(from.soa.sa_family) {
-#if HAVE_STRUCT_IP
 	 int headlen;
-#endif /* HAVE_STRUCT_IP */
 #if WITH_IP4
       case AF_INET:
-#if HAVE_STRUCT_IP
 	 if (pipe->dtype & XIOREAD_RECV_SKIPIP) {
 	    /* IP4 raw sockets include the header when passing a packet to the
 	       application - we don't need it here. */
@@ -243,7 +240,6 @@ ssize_t xioread(xiofile_t *file, void *buff, size_t bufsiz) {
 	       bytes -= headlen;
 	    }
 	 }
-#endif /* HAVE_STRUCT_IP */
 	 break;
 #endif
 #if WITH_IP6
@@ -361,12 +357,9 @@ ssize_t xioread(xiofile_t *file, void *buff, size_t bufsiz) {
       }
 
       switch(from.soa.sa_family) {
-#if HAVE_STRUCT_IP
 	 int headlen;
-#endif /* HAVE_STRUCT_IP */
 #if WITH_IP4
       case AF_INET:
-#if HAVE_STRUCT_IP
 	 if (pipe->dtype & XIOREAD_RECV_SKIPIP) {
 	    /* IP4 raw sockets include the header when passing a packet to the
 	       application - we don't need it here. */
@@ -383,7 +376,6 @@ ssize_t xioread(xiofile_t *file, void *buff, size_t bufsiz) {
 	       bytes -= headlen;
 	    }
 	 }
-#endif /* HAVE_STRUCT_IP */
 	 break;
 #endif
 #if WITH_IP6

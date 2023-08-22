@@ -1,8 +1,8 @@
-#! /usr/bin/env bash
+#! /bin/bash
 # source: socks4a-echo.sh
 #set -vx
 
-# Copyright Gerhard Rieger and contributors (see file CHANGES)
+# Copyright Gerhard Rieger 2004
 # Published under the GNU General Public License V.2, see file COPYING
 
 # perform primitive simulation of a socks4a server with echo function via stdio.
@@ -12,12 +12,11 @@
 # socat tcp-l:1080,reuseaddr,crlf system:"socks4a-echo.sh"
 
 # older bash and ksh do not have -n option to read command; we try dd then
-#if echo a |read -n 1 null >/dev/null 2>&1; then
-#    HAVE_READ_N=1
-#else
-    # and newer bash (4.3) has some other problem with read -n
+if echo a |read -n 1 null >/dev/null 2>&1; then
+    HAVE_READ_N=1
+else
     HAVE_READ_N=
-#fi
+fi
 
 if type socat >/dev/null 2>&1; then
     SOCAT=socat

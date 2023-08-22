@@ -1,5 +1,5 @@
 /* source: xio-readline.c */
-/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for opening the readline address */
@@ -61,10 +61,8 @@ static int xioopen_readline(int argc, const char *argv[], struct opt *opts,
    if ((rw+1)&1) {
       strcpy(cp, "readline on stdin for reading"); cp = strchr(cp, '\0');
 
-      if ((rw+1)&2) {
-	 strcpy(cp, " and ");
-	 cp = strchr(cp, '\0');
-      }
+      if ((rw+1)&2)
+      strcpy(cp, " and ");  cp = strchr(cp, '\0');
    }
    if ((rw+1)&2) {
       strcpy(cp, "stdio for writing"); cp = strchr(cp, '\0');
@@ -123,8 +121,8 @@ static int xioopen_readline(int argc, const char *argv[], struct opt *opts,
       Read_history(xfd->stream.para.readline.history_file);
    }
 #if _WITH_TERMIOS
-   xiotermios_clrflag(xfd->stream.fd, 3, ICANON|ECHO);
-   xiotermios_flush(xfd->stream.fd);
+   xiotermios_clrflag(xfd->stream.fd, 3, ICANON);
+   xiotermios_clrflag(xfd->stream.fd, 3, ECHO);
 #endif /* _WITH_TERMIOS */
    return _xio_openlate(&xfd->stream, opts);
 }
@@ -174,7 +172,6 @@ ssize_t xioread_readline(struct single *pipe, void *buff, size_t bufsiz) {
 
 #if _WITH_TERMIOS
       xiotermios_setflag(pipe->fd, 3, ECHO);
-      xiotermios_flush(pipe->fd);
 #endif /* _WITH_TERMIOS */
       if (pipe->para.readline.prompt || pipe->para.readline.dynprompt) {
 	 /* we must carriage return, because readline will first print the
@@ -202,7 +199,6 @@ ssize_t xioread_readline(struct single *pipe, void *buff, size_t bufsiz) {
       }
 #if _WITH_TERMIOS
       xiotermios_clrflag(pipe->fd, 3, ECHO);
-      xiotermios_flush(pipe->fd);
 #endif /* _WITH_TERMIOS */
       Add_history(line);
       bytes = strlen(line);

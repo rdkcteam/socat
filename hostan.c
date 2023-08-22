@@ -1,5 +1,5 @@
 /* source: hostan.c */
-/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* the subroutine hostan makes a "HOST ANalysis". It gathers information
@@ -17,6 +17,7 @@
 
 #include "hostan.h"
 
+#include "error.h"
 
 static int iffan(FILE *outfile);
 

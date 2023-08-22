@@ -1,5 +1,5 @@
 /* source: xiosigchld.c */
-/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this is the source of the extended child signal handler */
@@ -130,22 +130,12 @@ void childdied(int signum) {
 	 Info2("waitpid(): child %d exited with status %d",
 	       pid, WEXITSTATUS(status));
       } else {
-	 if (i == XIO_MAXSOCK) {
-	    Info2("waitpid(): child %d exited with status %d",
-		   pid, WEXITSTATUS(status));
-	 } else {
-	    Error2("waitpid(): child %d exited with status %d",
-		   pid, WEXITSTATUS(status));
-	 }
+	 Warn2("waitpid(): child %d exited with status %d",
+	       pid, WEXITSTATUS(status));
       }
    } else if (WIFSIGNALED(status)) {
-      if (i == XIO_MAXSOCK) {
-	 Info2("waitpid(): child %d exited on signal %d",
-	       pid, WTERMSIG(status));
-      } else {
-	 Error2("waitpid(): child %d exited on signal %d",
-	       pid, WTERMSIG(status));
-      }
+      Info2("waitpid(): child %d exited on signal %d",
+	    pid, WTERMSIG(status));
    } else if (WIFSTOPPED(status)) {
       Info2("waitpid(): child %d stopped on signal %d",
 	    pid, WSTOPSIG(status));

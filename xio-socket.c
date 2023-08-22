@@ -1,5 +1,5 @@
 /* source: xio-socket.c */
-/* Copyright Gerhard Rieger and contributors (see file CHANGES) */
+/* Copyright Gerhard Rieger */
 /* Published under the GNU General Public License V.2, see file COPYING */
 
 /* this file contains the source for socket related functions, and the
@@ -103,8 +103,14 @@ const struct optdesc opt_so_dontroute= { "so-dontroute", "dontroute", OPT_SO_DON
 #ifdef SO_RCVLOWAT
 const struct optdesc opt_so_rcvlowat = { "so-rcvlowat",  "rcvlowat", OPT_SO_RCVLOWAT, GROUP_SOCKET, PH_PASTSOCKET, TYPE_INT,  OFUNC_SOCKOPT, SOL_SOCKET, SO_RCVLOWAT };
 #endif
+#ifdef SO_RCVTIMEO
+const struct optdesc opt_so_rcvtimeo = { "so-rcvtimeo",  "rcvtimeo", OPT_SO_RCVTIMEO, GROUP_SOCKET, PH_PASTSOCKET, TYPE_TIMEVAL,OFUNC_SOCKOPT,SOL_SOCKET,SO_RCVTIMEO };
+#endif
 #ifdef SO_SNDLOWAT
 const struct optdesc opt_so_sndlowat = { "so-sndlowat",  "sndlowat", OPT_SO_SNDLOWAT, GROUP_SOCKET, PH_PASTSOCKET, TYPE_INT,  OFUNC_SOCKOPT, SOL_SOCKET, SO_SNDLOWAT };
+#endif
+#ifdef SO_SNDTIMEO
+const struct optdesc opt_so_sndtimeo = { "so-sndtimeo",  "sndtimeo", OPT_SO_SNDTIMEO, GROUP_SOCKET, PH_PASTSOCKET, TYPE_TIMEVAL,OFUNC_SOCKOPT,SOL_SOCKET,SO_SNDTIMEO };
 #endif
 /* end of setsockopt options of UNIX98 standard */
 
@@ -147,8 +153,8 @@ const struct optdesc opt_so_peercred = { "so-peercred", "peercred", OPT_SO_PEERC
 #ifdef SO_PRIORITY
 const struct optdesc opt_so_priority = { "so-priority", "priority", OPT_SO_PRIORITY, GROUP_SOCKET, PH_PASTSOCKET, TYPE_INT, OFUNC_SOCKOPT, SOL_SOCKET, SO_PRIORITY};
 #endif
-#ifdef SO_REUSEPORT	/* AIX 4.3.3, BSD, HP-UX, Linux >=3.9 */
-const struct optdesc opt_so_reuseport= { "so-reuseport","reuseport",OPT_SO_REUSEPORT,GROUP_SOCKET, PH_PREBIND, TYPE_INT, OFUNC_SOCKOPT, SOL_SOCKET, SO_REUSEPORT };
+#ifdef SO_REUSEPORT	/* AIX 4.3.3, BSD, HP-UX */
+const struct optdesc opt_so_reuseport= { "so-reuseport","reuseport",OPT_SO_REUSEPORT,GROUP_SOCKET, PH_PASTSOCKET, TYPE_INT, OFUNC_SOCKOPT, SOL_SOCKET, SO_REUSEPORT };
 #endif /* defined(SO_REUSEPORT) */
 #ifdef SO_SECURITY_AUTHENTICATION
 const struct optdesc opt_so_security_authentication={"so-security-authentication","securityauthentication",OPT_SO_SECURITY_AUTHENTICATION,GROUP_SOCKET,PH_PASTSOCKET,TYPE_INT,OFUNC_SOCKOPT,SOL_SOCKET,SO_SECURITY_AUTHENTICATION};
@@ -1487,7 +1493,6 @@ int _xioopen_dgram_recv(struct single *xfd, int xioflags,
    }
 #endif
 
-   applyopts_single(xfd, opts, PH_PASTBIND);   
    applyopts(xfd->fd, opts, PH_PASTBIND);
 #if WITH_UNIX
    if (pf == AF_UNIX && us != NULL) {
